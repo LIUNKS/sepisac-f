@@ -17,8 +17,10 @@ export const AppLayout = () => {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2 text-sm text-slate-700">
                         <UserIcon className="h-4 w-4 text-slate-500" />
-                        <span className="font-medium">{user?.name}</span>
-                        <span className="text-xs text-slate-400">({user?.roles.join(', ')})</span>
+                        <span className="font-medium">{user?.username}</span>
+                        <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded font-mono">
+                            {user?.role}
+                        </span>
                     </div>
 
                     <Button variant="ghost" size="sm" onClick={logout} className="text-slate-600 hover:text-red-600">

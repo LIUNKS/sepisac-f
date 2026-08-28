@@ -14,17 +14,20 @@ export const DashboardPage = () => {
                         <CardTitle className="text-sm font-medium text-slate-500">Usuario Conectado</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{user?.name}</div>
+                        <div className="text-2xl font-bold">{user?.username}</div>
                         <p className="text-xs text-slate-500">{user?.email}</p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-sm font-medium text-slate-500">Roles Asignados</CardTitle>
+                        <CardTitle className="text-sm font-medium text-slate-500">Rol Asignado</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{user?.roles.join(', ')}</div>
+                        <div className="text-2xl font-bold font-mono text-primary">{user?.role}</div>
+                        {user?.companyId && (
+                            <p className="text-xs text-slate-400 truncate mt-1">Empresa: {user.companyId}</p>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -34,9 +37,10 @@ export const DashboardPage = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-emerald-600">Operativo</div>
+                        <p className="text-xs text-slate-500 mt-1">Conectado a Spring Boot</p>
                     </CardContent>
                 </Card>
             </div>
         </div>
     );
-};
+};

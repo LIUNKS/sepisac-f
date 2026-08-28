@@ -28,8 +28,10 @@ apiClient.interceptors.response.use(
     (error: AxiosError<ApiErrorResponse>) => {
         const status = error.response?.status;
         const data = error.response?.data;
+        const requestUrl = error.config?.url ?? '';
+        const isAuthLoginRequest = requestUrl.includes('/auth/login');
 
-        if (status === 401) {
+        if (status === 401 && !isAuthLoginRequest) {
             toast.error('Sesión expirada o no autorizada');
             useAuthStore.getState().logout();
             window.location.href = '/login';
@@ -37,9 +39,9 @@ apiClient.interceptors.response.use(
             toast.error('Acceso denegado: No tienes permisos suficientes');
         } else if (status === 500) {
             toast.error('Error interno del servidor. Contacte al administrador.');
-        } else if (data?.message) {
+        } else if (!isAuthLoginRequest && data?.message) {
             toast.error(data.message);
-        } else {
+        } else if (!error.response) {
             toast.error('Error de conexión con el servidor');
         }
 

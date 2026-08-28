@@ -1,11 +1,20 @@
-import type { User } from '@/app/store/useAuthStore';
-
-export interface LoginRequest {
+export interface LoginRequestDTO {
     email: string;
     password: string;
 }
 
-export interface LoginResponse {
+export interface AuthResponseDTO {
     token: string;
-    user: User;
+    type: string;
+    email: string;
+    username: string;
+    role: string;
+    companyId: string;
 }
+
+export interface AuthUser {
+    email: string;
+    username: string;
+    role: string;
+    companyId: string;
+}

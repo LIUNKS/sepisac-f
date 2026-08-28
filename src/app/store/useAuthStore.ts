@@ -1,18 +1,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { AuthResponseDTO, AuthUser } from '@/features/auth/types/auth.types';
 
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    roles: string[];
-}
+export type { AuthUser };
 
 interface AuthState {
     token: string | null;
-    user: User | null;
+    user: AuthUser | null;
     isAuthenticated: boolean;
-    setAuth: (token: string, user: User) => void;
+    setAuth: (data: AuthResponseDTO) => void;
     logout: () => void;
     hasRole: (allowedRoles: string[]) => boolean;
 }
@@ -23,12 +19,32 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             user: null,
             isAuthenticated: false,
-            setAuth: (token, user) => set({ token, user, isAuthenticated: true }),
+            setAuth: (data: AuthResponseDTO) => {
+                const user: AuthUser = {
+                    email: data.email,
+                    username: data.username,
+                    role: data.role,
+                    companyId: data.companyId,
+                };
+                set({
+                    token: data.token,
+                    user,
+                    isAuthenticated: true,
+                });
+            },
             logout: () => set({ token: null, user: null, isAuthenticated: false }),
             hasRole: (allowedRoles: string[]) => {
                 const user = get().user;
-                if (!user || !user.roles) return false;
-                return user.roles.some((role) => allowedRoles.includes(role));
+                if (!user || !user.role) return false;
+                const normalizedRole = user.role.toUpperCase();
+                return allowedRoles.some((role) => {
+                    const normalizedAllowed = role.toUpperCase();
+                    return (
+                        normalizedRole === normalizedAllowed ||
+                        normalizedRole === normalizedAllowed.replace(/^ROLE_/, '') ||
+                        `ROLE_${normalizedRole}` === normalizedAllowed
+                    );
+                });
             },
         }),
         {
@@ -36,4 +52,4 @@ export const useAuthStore = create<AuthState>()(
             storage: createJSONStorage(() => localStorage),
         }
     )
-);
+);

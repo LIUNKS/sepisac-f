@@ -8,7 +8,7 @@ export const getInventory = async (companyId?: string, page = 0, size = 100): Pr
         params.companyId = companyId;
     }
 
-    const response = await apiClient.get<InventoryPageResponse>('/inventory/items', {
+    const response = await apiClient.get<InventoryPageResponse>('inventory/items', {
         params
     });
 
@@ -38,4 +38,18 @@ export const getInventory = async (companyId?: string, page = 0, size = 100): Pr
         ...response.data,
         content
     };
+};
+
+export interface UpdateInventoryItemPayload {
+    sku: string;
+    name: string;
+    description: string;
+    purchaseCost: number;
+    salePrice: number;
+    minStockAlert: number;
+}
+
+export const updateInventoryItem = async (id: string, payload: UpdateInventoryItemPayload): Promise<InventoryItem> => {
+    const response = await apiClient.put<InventoryItem>(`inventory/items/${id}`, payload);
+    return response.data;
 };

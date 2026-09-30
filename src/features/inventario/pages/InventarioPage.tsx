@@ -8,9 +8,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { getInventory } from '../services/inventory.service';
 import { apiClient } from '@/lib/axios';
+import { EditInventoryItemModal } from '../components/EditInventoryItemModal';
+import { ViewInventoryItemModal } from '../components/ViewInventoryItemModal';
+import type { InventoryItem } from '../types';
 
 export const InventarioPage = () => {
     const [activeTab, setActiveTab] = useState('Todos');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [itemToView, setItemToView] = useState<InventoryItem | null>(null);
     const { user } = useAuthStore();
 
     const queryClient = useQueryClient();
@@ -25,7 +32,7 @@ export const InventarioPage = () => {
             if (!user?.companyId) {
                 throw new Error("No tienes una empresa asignada para generar datos de prueba.");
             }
-            await apiClient.post(`/inventory/items/seed/${user?.companyId}`);
+            await apiClient.post(`inventory/items/seed/${user?.companyId}`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['inventory'] });
@@ -39,7 +46,7 @@ export const InventarioPage = () => {
         { id: 'Alertas', label: 'Alertas', showBadge: true, count: inventoryData.filter(i => i.isLowStock).length },
         { id: 'Herramientas', label: `Herramientas`, showBadge: false },
         { id: 'Consumibles', label: `Consumibles`, showBadge: false },
-        { id: 'EPP', label: `EPP`, showBadge: false },
+        { id: 'EPP', label: `Protección Personal`, showBadge: false },
     ];
 
     const filteredData = inventoryData.filter(item => {
@@ -114,8 +121,8 @@ export const InventarioPage = () => {
             {/* Table Card */}
             <Card className="border-border shadow-sm">
                 <CardHeader className="p-0 border-b border-border">
-                    <div className="flex justify-between items-center px-6 mt-4">
-                        <div className="flex gap-6 overflow-x-auto">
+                    <div className="flex justify-between items-center px-6 mt-4 flex-wrap gap-4">
+                        <div className="flex gap-6 flex-wrap">
                             {tabs.map(tab => (
                                 <button
                                     key={tab.id}
@@ -196,10 +203,26 @@ export const InventarioPage = () => {
                                     </TableCell>
                                     <TableCell className="py-4 text-right px-6">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+                                            <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                                onClick={() => {
+                                                    setItemToView(item);
+                                                    setIsViewModalOpen(true);
+                                                }}
+                                            >
                                                 <Eye className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
+                                            <Button 
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                                onClick={() => {
+                                                    setItemToEdit(item);
+                                                    setIsEditModalOpen(true);
+                                                }}
+                                            >
                                                 <Pencil className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -217,6 +240,24 @@ export const InventarioPage = () => {
                     </Table>
                 </CardContent>
             </Card>
+
+            <ViewInventoryItemModal
+                isOpen={isViewModalOpen}
+                onClose={() => {
+                    setIsViewModalOpen(false);
+                    setItemToView(null);
+                }}
+                item={itemToView}
+            />
+
+            <EditInventoryItemModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setItemToEdit(null);
+                }}
+                item={itemToEdit}
+            />
         </div>
     );
 };

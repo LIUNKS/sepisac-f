@@ -1,9 +1,12 @@
 import { apiClient } from '@/lib/axios';
 import type { InventoryPageResponse, InventoryItem } from '../types';
 
-export const getInventory = async (companyId?: string, page = 0, size = 100): Promise<InventoryPageResponse> => {
-    // The backend uses ?companyId=...&page=...&size=...
-    const params: Record<string, any> = { page, size };
+export const getInventory = async (companyId?: string, page = 0, size = 100, search?: string): Promise<InventoryPageResponse> => {
+    // The backend uses ?companyId=...&page=...&size=...&search=...
+    // Bug en Postgres: si search es vacio o undefined (null en backend), crashea. Default a '%'
+    const safeSearch = (search && search.trim() !== '') ? search : '%';
+    const params: Record<string, any> = { page, size, search: safeSearch };
+    
     if (companyId) {
         params.companyId = companyId;
     }

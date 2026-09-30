@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 import type { Quotation } from '../types';
 import { updateQuotation } from '../services/quotation.service';
@@ -52,7 +52,6 @@ interface EditQuotationModalProps {
 }
 
 export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotationModalProps) => {
-    const { toast } = useToast();
     const queryClient = useQueryClient();
 
     const form = useForm<FormValues>({
@@ -85,18 +84,11 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['quotations'] });
-            toast({
-                title: 'Cotización actualizada',
-                description: 'Los datos se han guardado exitosamente.',
-            });
+            toast.success('Cotización actualizada exitosamente');
             onClose();
         },
         onError: (error: any) => {
-            toast({
-                title: 'Error al actualizar',
-                description: error.response?.data?.message || 'Ocurrió un error inesperado.',
-                variant: 'destructive',
-            });
+            toast.error(error.response?.data?.message || 'Error al actualizar la cotización');
         },
     });
 

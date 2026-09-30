@@ -11,6 +11,7 @@ import { apiClient } from '@/lib/axios';
 import { EditInventoryItemModal } from '../components/EditInventoryItemModal';
 import { ViewInventoryItemModal } from '../components/ViewInventoryItemModal';
 import type { InventoryItem } from '../types';
+import { exportInventoryToExcel } from '../utils/exportInventoryToExcel';
 
 export const InventarioPage = () => {
     const [activeTab, setActiveTab] = useState('Todos');
@@ -142,10 +143,10 @@ export const InventarioPage = () => {
                                 </button>
                             ))}
                         </div>
-                        <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 mb-3 h-8 text-sm shrink-0">
-                            <DownloadCloud className="w-4 h-4 mr-2" />
-                            Exportar
-                        </Button>
+                        <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 mb-3 h-8 text-sm shrink-0" onClick={() => exportInventoryToExcel(filteredData)}>
+                                <DownloadCloud className="w-4 h-4 mr-2" />
+                                Exportar
+                            </Button>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0 overflow-x-auto">

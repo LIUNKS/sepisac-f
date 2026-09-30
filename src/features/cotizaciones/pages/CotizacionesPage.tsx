@@ -227,8 +227,8 @@ export const CotizacionesPage = () => {
                                             >
                                                 <Pencil className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={() => handleDownloadPDF(quotation.id, quotation.quotationNumber)} disabled={downloadingId === quotation.id}>
-                                                {downloadingId === quotation.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={() => handleDownloadPDF(quote.id, quote.quotationNumber)} disabled={downloadingId === quote.id}>
+                                                {downloadingId === quote.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                             </Button>
                                         </div>
                                     </TableCell>

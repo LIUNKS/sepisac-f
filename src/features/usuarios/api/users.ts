@@ -52,11 +52,11 @@ export const toggleUserStatus = async (id: string): Promise<UserResponseDTO> => 
 };
 
 // --- Hooks ---
-export const useUsers = (companyId: string | undefined, filters: Omit<UserFilterDTO, 'companyId'>) => {
+export const useUsers = (companyId: string | undefined, filters: Omit<UserFilterDTO, 'companyId'>, enabled: boolean = true) => {
     return useQuery({
         queryKey: userKeys.list({ companyId, ...filters }),
         queryFn: () => getUsers(companyId, filters),
-        // quitamos el enabled: !!companyId para que busque igual a nivel global si es superadmin
+        enabled
     });
 };
 

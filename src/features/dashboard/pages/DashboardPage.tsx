@@ -34,7 +34,7 @@ export const DashboardPage = () => {
     const { user } = useAuthStore();
     const queryClient = useQueryClient();
 
-    const { data, isLoading, error } = useQuery({
+    const { data, isPending, isLoading, error } = useQuery({
         queryKey: ['dashboard', user?.companyId],
         queryFn: () => getDashboardData(user?.companyId || ''),
         enabled: !!user?.companyId
@@ -46,17 +46,23 @@ export const DashboardPage = () => {
             toast.success('Datos de prueba generados exitosamente');
             queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         },
-        onError: () => {
-            toast.error('Error al generar los datos de prueba');
+        onError: (err: any) => {
+            toast.error('Error al generar los datos de prueba: ' + err.message);
         }
     });
 
-    if (isLoading) {
-        return <div className="text-center py-10 text-muted-foreground">Cargando dashboard...</div>;
+    if (error) {
+        return (
+            <div className="text-center py-10 text-red-500">
+                <p className="font-bold text-lg">Error al cargar el dashboard</p>
+                <p className="text-sm mt-2">{error instanceof Error ? error.message : JSON.stringify(error)}</p>
+                <p className="text-xs mt-1 text-muted-foreground">Revisa la consola (F12) para más detalles.</p>
+            </div>
+        );
     }
 
-    if (error || !data) {
-        return <div className="text-center py-10 text-red-500">Error al cargar el dashboard</div>;
+    if (isLoading || isPending || !data) {
+        return <div className="text-center py-10 text-muted-foreground">Cargando dashboard...</div>;
     }
 
     // Calcular el total de los proyectos para el porcentaje

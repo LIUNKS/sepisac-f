@@ -4,33 +4,84 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Pencil, DownloadCloud, Archive, AlertTriangle, CircleDollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-
-const kpisData = [
-    { title: 'Total de Artículos', value: '1,248', trend: '+12 este mes', trendType: 'success', icon: Archive, alert: false },
-    { title: 'Alertas de Stock', value: '3', trend: 'Requieren reabastecimiento', trendType: 'warning', icon: AlertTriangle, alert: true },
-    { title: 'Valor del Inventario', value: 'S/ 45,300', trend: '+2.4% vs mes anterior', trendType: 'success', icon: CircleDollarSign, alert: false },
-];
-
-const inventoryData = [
-    { id: 1, name: 'Taladro Percutor Bosch', category: 'Perforación', code: 'HER-042', location: 'Almacén A - Estante 2', stock: '1', unit: 'disponibles', minStock: 3, status: 'Bajo Stock' },
-    { id: 2, name: 'Esmeril Angular 7"', category: 'Corte', code: 'HER-089', location: 'Almacén A - Estante 4', stock: '0', unit: 'disponibles', minStock: 2, status: 'Agotado' },
-    { id: 3, name: 'Casco de Seguridad EPP', category: 'EPP', code: 'EPP-005', location: 'Almacén B - Casilleros', stock: '2', unit: 'disponibles', minStock: 10, status: 'Bajo Stock' },
-    { id: 4, name: 'Cable Eléctrico 12 AWG THW', category: 'Consumibles / Eléctrico', code: 'CON-112', location: 'Almacén C - Bobinas', stock: '450', unit: 'm', minStock: 100, status: 'Normal' },
-];
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/app/store/useAuthStore';
+import { getInventory } from '../services/inventory.service';
+import { apiClient } from '@/lib/axios';
 
 export const InventarioPage = () => {
-    const [activeTab, setActiveTab] = useState('Alertas');
+    const [activeTab, setActiveTab] = useState('Todos');
+    const { user } = useAuthStore();
+
+    const queryClient = useQueryClient();
+
+    const { data, isPending, isLoading, error } = useQuery({
+        queryKey: ['inventory', user?.companyId],
+        queryFn: () => getInventory(user?.companyId || '')
+    });
+
+    const seedMutation = useMutation({
+        mutationFn: async () => {
+            await apiClient.post(`/inventory/items/seed/${user?.companyId}`);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['inventory'] });
+        }
+    });
+
+    const inventoryData = data?.content || [];
 
     const tabs = [
-        { id: 'Todos', label: 'Todos (1,248)', showBadge: false },
-        { id: 'Alertas', label: 'Alertas', showBadge: true, count: 3 },
-        { id: 'Herramientas', label: 'Herramientas', showBadge: false },
-        { id: 'Consumibles', label: 'Consumibles', showBadge: false },
-        { id: 'EPP', label: 'EPP', showBadge: false },
+        { id: 'Todos', label: `Todos (${inventoryData.length})`, showBadge: false },
+        { id: 'Alertas', label: 'Alertas', showBadge: true, count: inventoryData.filter(i => i.isLowStock).length },
+        { id: 'Herramientas', label: `Herramientas`, showBadge: false },
+        { id: 'Consumibles', label: `Consumibles`, showBadge: false },
+        { id: 'EPP', label: `EPP`, showBadge: false },
     ];
+
+    const filteredData = inventoryData.filter(item => {
+        if (activeTab === 'Todos') return true;
+        if (activeTab === 'Alertas') return item.isLowStock;
+        return item.category === activeTab;
+    });
+
+    const totalValor = inventoryData.reduce((acc, curr) => acc + (curr.stockQuantity * curr.purchaseCost), 0);
+    const lowStockCount = inventoryData.filter(i => i.isLowStock).length;
+
+    const kpisData = [
+        { title: 'Total de Artículos', value: inventoryData.length.toString(), trend: 'En catálogo', trendType: 'success', icon: Archive, alert: false },
+        { title: 'Alertas de Stock', value: lowStockCount.toString(), trend: 'Requieren reabastecimiento', trendType: 'warning', icon: AlertTriangle, alert: lowStockCount > 0 },
+        { title: 'Valor del Inventario', value: `S/ ${totalValor.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`, trend: 'Basado en costo de compra', trendType: 'success', icon: CircleDollarSign, alert: false },
+    ];
+
+    if (error) {
+        return (
+            <div className="text-center py-10 text-red-500">
+                <p className="font-bold text-lg">Error al cargar el inventario</p>
+                <p className="text-sm mt-2">{error instanceof Error ? error.message : JSON.stringify(error)}</p>
+            </div>
+        );
+    }
+
+    if (isLoading || isPending || !data) {
+        return <div className="text-center py-10 text-muted-foreground">Cargando inventario...</div>;
+    }
 
     return (
         <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold tracking-tight">Inventario</h2>
+                {inventoryData.length === 0 && (
+                    <Button 
+                        onClick={() => seedMutation.mutate()} 
+                        disabled={seedMutation.isPending}
+                        variant="outline" 
+                        className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+                    >
+                        {seedMutation.isPending ? 'Generando...' : 'Generar Datos de Prueba'}
+                    </Button>
+                )}
+            </div>
             
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -61,7 +112,7 @@ export const InventarioPage = () => {
             <Card className="border-border shadow-sm">
                 <CardHeader className="p-0 border-b border-border">
                     <div className="flex justify-between items-center px-6 mt-4">
-                        <div className="flex gap-6">
+                        <div className="flex gap-6 overflow-x-auto">
                             {tabs.map(tab => (
                                 <button
                                     key={tab.id}
@@ -73,7 +124,7 @@ export const InventarioPage = () => {
                                     }`}
                                 >
                                     {tab.label}
-                                    {tab.showBadge && (
+                                    {tab.showBadge && tab.count > 0 && (
                                         <span className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
                                             {tab.count}
                                         </span>
@@ -100,53 +151,65 @@ export const InventarioPage = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {inventoryData.map((item) => (
-                                <TableRow key={item.id} className="border-border/50 hover:bg-muted/50">
+                            {filteredData.map((item) => (
+                                <TableRow key={item.id} className="border-border/50 hover:bg-secondary/40 transition-colors">
                                     <TableCell className="px-6 py-4">
-                                        <div className="font-semibold text-foreground">{item.name}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">{item.category}</div>
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">{item.code}</TableCell>
-                                    <TableCell className="text-muted-foreground">{item.location}</TableCell>
-                                    <TableCell>
-                                        <div className={`font-bold text-sm ${
-                                            item.status === 'Normal' ? 'text-emerald-600 dark:text-emerald-400' :
-                                            item.status === 'Bajo Stock' ? 'text-amber-600 dark:text-amber-400' :
-                                            'text-red-600 dark:text-red-400'
-                                        }`}>
-                                            {item.stock} <span className="font-normal">{item.unit}</span>
+                                        <div>
+                                            <p className="font-semibold text-foreground">{item.name}</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">{item.category}</p>
                                         </div>
-                                        <div className="text-[11px] text-muted-foreground mt-0.5">Min: {item.minStock} {item.unit !== 'disponibles' ? item.unit : ''}</div>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="py-4 text-sm font-medium text-muted-foreground">
+                                        {item.sku}
+                                    </TableCell>
+                                    <TableCell className="py-4 text-sm text-muted-foreground">
+                                        {item.location}
+                                    </TableCell>
+                                    <TableCell className="py-4">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-semibold text-foreground">{item.stockQuantity}</span>
+                                            <span className="text-xs text-muted-foreground">{item.unit}</span>
+                                        </div>
+                                        <div className="text-[11px] text-muted-foreground mt-0.5">Min: {item.minStockAlert} {item.unit !== 'disponibles' ? item.unit : ''}</div>
+                                    </TableCell>
+                                    <TableCell className="py-4">
                                         <Badge 
-                                            variant="secondary" 
-                                            className={`gap-1.5 ${
-                                                item.status === 'Normal' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
-                                                item.status === 'Bajo Stock' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20' :
-                                                'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'
+                                            variant="secondary"
+                                            className={`gap-1.5 font-medium ${
+                                                item.stockQuantity <= 0
+                                                    ? 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400 hover:bg-red-100'
+                                                    : item.isLowStock
+                                                    ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-100'
+                                                    : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100'
                                             }`}
                                         >
                                             <span className={`w-1.5 h-1.5 rounded-full ${
-                                                item.status === 'Normal' ? 'bg-emerald-600 dark:bg-emerald-400' :
-                                                item.status === 'Bajo Stock' ? 'bg-amber-600 dark:bg-amber-400' :
-                                                'bg-red-600 dark:bg-red-400'
+                                                item.stockQuantity <= 0 ? 'bg-red-600 dark:bg-red-400' :
+                                                item.isLowStock ? 'bg-amber-600 dark:bg-amber-400' :
+                                                'bg-emerald-600 dark:bg-emerald-400'
                                             }`}></span>
-                                            {item.status}
+                                            {item.stockQuantity <= 0 ? 'Agotado' : item.isLowStock ? 'Bajo Stock' : 'Normal'}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="px-6 text-right">
+                                    <TableCell className="py-4 text-right px-6">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
                                                 <Eye className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
                                                 <Pencil className="w-4 h-4" />
                                             </Button>
                                         </div>
                                     </TableCell>
                                 </TableRow>
                             ))}
+                            {filteredData.length === 0 && (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                                        No hay ítems en esta categoría.
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>

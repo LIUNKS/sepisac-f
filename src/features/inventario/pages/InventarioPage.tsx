@@ -22,6 +22,9 @@ export const InventarioPage = () => {
 
     const seedMutation = useMutation({
         mutationFn: async () => {
+            if (!user?.companyId) {
+                throw new Error("No tienes una empresa asignada para generar datos de prueba.");
+            }
             await apiClient.post(`/inventory/items/seed/${user?.companyId}`);
         },
         onSuccess: () => {

@@ -1,14 +1,15 @@
 import { apiClient } from '@/lib/axios';
 import type { InventoryPageResponse, InventoryItem } from '../types';
 
-export const getInventory = async (companyId: string, page = 0, size = 100): Promise<InventoryPageResponse> => {
+export const getInventory = async (companyId?: string, page = 0, size = 100): Promise<InventoryPageResponse> => {
     // The backend uses ?companyId=...&page=...&size=...
+    const params: Record<string, any> = { page, size };
+    if (companyId) {
+        params.companyId = companyId;
+    }
+
     const response = await apiClient.get<InventoryPageResponse>('/inventory/items', {
-        params: {
-            companyId,
-            page,
-            size
-        }
+        params
     });
 
     // Map properties from DB to UI needs

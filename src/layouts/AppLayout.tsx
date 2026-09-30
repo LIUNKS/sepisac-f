@@ -1,4 +1,4 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { Button } from '@/components/ui/button';
 import { 
@@ -26,6 +26,28 @@ const NAVIGATION = [
 
 export const AppLayout = () => {
     const { user, logout } = useAuthStore();
+    const location = useLocation();
+
+    const getHeaderInfo = () => {
+        switch(location.pathname) {
+            case '/dashboard': 
+                return { title: 'Panel Principal', subtitle: `Bienvenido, ${user?.username}` };
+            case '/proyectos': 
+                return { title: 'Gestión de Proyectos', subtitle: 'Visualiza y administra todas las órdenes de trabajo' };
+            case '/cotizaciones': 
+                return { title: 'Cotizaciones', subtitle: 'Gestiona presupuestos y propuestas comerciales' };
+            case '/inventario': 
+                return { title: 'Inventario', subtitle: 'Control de materiales y equipos' };
+            case '/usuarios': 
+                return { title: 'Usuarios del Sistema', subtitle: 'Administración de accesos y roles' };
+            case '/reportes': 
+                return { title: 'Reportes y Analíticas', subtitle: 'Estadísticas e indicadores del negocio' };
+            default: 
+                return { title: 'SEPISAC', subtitle: 'Sistema ERP' };
+        }
+    };
+
+    const headerInfo = getHeaderInfo();
 
     return (
         <div className="flex h-screen bg-secondary/30 text-foreground font-sans overflow-hidden">
@@ -94,8 +116,8 @@ export const AppLayout = () => {
                 {/* Topbar */}
                 <header className="h-[72px] bg-background/50 backdrop-blur-sm border-b border-border/50 flex items-center justify-between px-10 shrink-0">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground">Panel Principal</h1>
-                        <p className="text-sm text-muted-foreground">Bienvenido, {user?.username}</p>
+                        <h1 className="text-2xl font-bold text-foreground">{headerInfo.title}</h1>
+                        <p className="text-sm text-muted-foreground">{headerInfo.subtitle}</p>
                     </div>
 
                     <div className="flex items-center gap-6">

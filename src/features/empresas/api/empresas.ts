@@ -25,6 +25,8 @@ export const getCompanies = async (params: CompanyFilterDTO): Promise<PageRespon
     
     const body: CompanyFilterDTO = { 
         ...params, 
+        page: params.page ?? 0,
+        size: params.size ?? 10,
         search: safeSearch
     };
     const { data } = await apiClient.post<PageResponse<CompanyResponseDTO>>(`/companies/search`, body);
@@ -37,10 +39,11 @@ export const createCompany = async (payload: CompanyCreateDTO): Promise<CompanyR
 };
 
 // --- Hooks ---
-export const useCompanies = (filters: CompanyFilterDTO) => {
+export const useCompanies = (filters: CompanyFilterDTO, enabled: boolean = true) => {
     return useQuery({
         queryKey: companyKeys.list(filters),
         queryFn: () => getCompanies(filters),
+        enabled
     });
 };
 

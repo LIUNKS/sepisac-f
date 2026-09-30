@@ -6,6 +6,7 @@ import { AppLayout } from '@/layouts/AppLayout';
 import { LoginPage } from '@/features/auth';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { ProjectsPage } from '@/features/projects/pages/ProjectsPage';
+import { CotizacionesPage } from '@/features/cotizaciones/pages/CotizacionesPage';
 
 export const AppRoutes = () => {
     return (
@@ -20,6 +21,7 @@ export const AppRoutes = () => {
                 <Route element={<AppLayout />}>
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/proyectos" element={<ProjectsPage />} />
+                    <Route path="/cotizaciones" element={<CotizacionesPage />} />
 
                     {/* Rutas Protegidas por Roles Específicos */}
                     <Route element={<RoleGuard allowedRoles={['ROLE_ADMIN', 'SUPERADMIN']} />}>

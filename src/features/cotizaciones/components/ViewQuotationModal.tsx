@@ -31,9 +31,12 @@ export const ViewQuotationModal = ({ quotation, isOpen, onClose }: ViewQuotation
             const blob = await pdf(<QuotationPDF quotation={quotation} />).toBlob();
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
+            document.body.appendChild(a);
+            a.style.display = 'none';
             a.href = url;
             a.download = `Cotizacion_${quotation.quotationNumber}.pdf`;
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
             toast.success('PDF generado exitosamente');
         } catch (error) {

@@ -6,4 +6,8 @@ export const authApi = {
         const response = await apiClient.post<AuthResponseDTO>('/auth/login', credentials);
         return response.data;
     },
+    getMe: async (): Promise<AuthResponseDTO> => {
+        const response = await apiClient.get<AuthResponseDTO>('/auth/me');
+        return response.data;
+    }
 };

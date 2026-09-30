@@ -21,6 +21,7 @@ export const useAuthStore = create<AuthState>()(
                 const user: AuthUser = {
                     email: data.email,
                     username: data.username,
+                    fullName: data.fullName,
                     role: data.role,
                     companyId: data.companyId,
                 };
@@ -38,8 +39,8 @@ export const useAuthStore = create<AuthState>()(
                     const normalizedAllowed = role.toUpperCase();
                     return (
                         normalizedRole === normalizedAllowed ||
-                        normalizedRole === normalizedAllowed.replace(/^ROLE_/, '') ||
-                        `ROLE_${normalizedRole}` === normalizedAllowed
+                        normalizedRole.replace(/^ROLE_/, '') === normalizedAllowed ||
+                        normalizedRole === `ROLE_${normalizedAllowed}`
                     );
                 });
             },

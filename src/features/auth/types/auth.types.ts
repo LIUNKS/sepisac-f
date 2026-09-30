@@ -6,6 +6,7 @@ export interface LoginRequestDTO {
 export interface AuthResponseDTO {
     email: string;
     username: string;
+    fullName: string;
     role: string;
     companyId: string;
 }
@@ -13,6 +14,7 @@ export interface AuthResponseDTO {
 export interface AuthUser {
     email: string;
     username: string;
+    fullName: string;
     role: string;
     companyId: string;
 }

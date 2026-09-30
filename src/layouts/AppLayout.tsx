@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/app/store/useAuthStore';
+import { useMeQuery } from '@/features/auth/hooks/useMeQuery';
 import { Button } from '@/components/ui/button';
 import { 
     LayoutGrid, 
@@ -10,7 +11,12 @@ import {
     BarChart, 
     Bell,
     Search,
-    LogOut
+    LogOut,
+    HardHat,
+    Truck,
+    ShoppingCart,
+    Receipt,
+    Building2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -20,26 +26,44 @@ const NAVIGATION = [
     { name: 'Proyectos', to: '/proyectos', icon: Briefcase },
     { name: 'Cotizaciones', to: '/cotizaciones', icon: FileText },
     { name: 'Inventario', to: '/inventario', icon: Package },
+    { name: 'Empleados', to: '/empleados', icon: HardHat },
+    { name: 'Maquinaria', to: '/maquinaria', icon: Truck },
+    { name: 'Compras', to: '/compras', icon: ShoppingCart },
+    { name: 'Facturación', to: '/facturacion', icon: Receipt },
     { name: 'Usuarios', to: '/usuarios', icon: Users },
+    { name: 'Empresas', to: '/empresas', icon: Building2 },
     { name: 'Reportes', to: '/reportes', icon: BarChart },
 ];
 
 export const AppLayout = () => {
     const { user, logout } = useAuthStore();
     const location = useLocation();
+    
+    // Call the /me endpoint to keep data fresh (e.g. fullName)
+    useMeQuery();
 
     const getHeaderInfo = () => {
         switch(location.pathname) {
             case '/dashboard': 
-                return { title: 'Panel Principal', subtitle: `Bienvenido, ${user?.username}` };
+                return { title: 'Panel Principal', subtitle: `Bienvenido, ${user?.fullName || user?.username}` };
             case '/proyectos': 
                 return { title: 'Gestión de Proyectos', subtitle: 'Visualiza y administra todas las órdenes de trabajo' };
             case '/cotizaciones': 
                 return { title: 'Cotizaciones', subtitle: 'Gestiona presupuestos y propuestas comerciales' };
             case '/inventario': 
                 return { title: 'Inventario', subtitle: 'Control de materiales y equipos' };
+            case '/empleados': 
+                return { title: 'Recursos Humanos', subtitle: 'Gestión de técnicos, ingenieros y personal' };
+            case '/maquinaria': 
+                return { title: 'Maquinaria y Equipos', subtitle: 'Administración de la flota y herramientas' };
+            case '/compras': 
+                return { title: 'Compras y Proveedores', subtitle: 'Órdenes de compra y gestión de abastecimiento' };
+            case '/facturacion': 
+                return { title: 'Facturación', subtitle: 'Control de facturas y cobranzas' };
             case '/usuarios': 
                 return { title: 'Usuarios del Sistema', subtitle: 'Administración de accesos y roles' };
+            case '/empresas': 
+                return { title: 'Empresas', subtitle: 'Configuración y registro de clientes o tenants' };
             case '/reportes': 
                 return { title: 'Reportes y Analíticas', subtitle: 'Estadísticas e indicadores del negocio' };
             default: 
@@ -48,6 +72,7 @@ export const AppLayout = () => {
     };
 
     const headerInfo = getHeaderInfo();
+    const displayName = user?.fullName || user?.username;
 
     return (
         <div className="flex h-screen bg-secondary/30 text-foreground font-sans overflow-hidden">
@@ -64,7 +89,7 @@ export const AppLayout = () => {
                     Menú Principal
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+                <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
                     {NAVIGATION.map((item) => (
                         <NavLink
                             key={item.name}
@@ -85,25 +110,28 @@ export const AppLayout = () => {
 
                 {/* User Profile Footer */}
                 <div className="p-4 mt-auto border-t border-border flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-10 h-10 shrink-0 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
                             <img 
-                                src={`https://ui-avatars.com/api/?name=${user?.username}&background=cbd5e1&color=334155`} 
+                                src={`https://ui-avatars.com/api/?name=${displayName}&background=cbd5e1&color=334155`} 
                                 alt="avatar" 
                             />
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-[13px] font-semibold text-foreground leading-tight">
-                                {user?.username}
+                        <div className="flex flex-col overflow-hidden">
+                            <span className="text-[13px] font-semibold text-foreground leading-tight truncate" title={displayName}>
+                                {displayName}
                             </span>
-                            <span className="text-[11px] text-muted-foreground capitalize">
+                            <span className="text-[11px] text-muted-foreground truncate" title={user?.email}>
+                                {user?.email}
+                            </span>
+                            <span className="text-[10px] text-primary/80 font-medium capitalize mt-0.5">
                                 {user?.role?.replace('ROLE_', '').toLowerCase()}
                             </span>
                         </div>
                     </div>
                     <button 
                         onClick={logout} 
-                        className="text-muted-foreground hover:text-destructive transition-colors"
+                        className="text-muted-foreground hover:text-destructive transition-colors shrink-0 ml-2"
                         title="Cerrar sesión"
                     >
                         <LogOut className="w-5 h-5" />

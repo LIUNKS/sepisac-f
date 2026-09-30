@@ -11,6 +11,18 @@ import { CompaniesTable, CompanyFormModal } from '../components';
 export const EmpresasPage = () => {
     // Solo SUPERADMIN debería ver esta página
     const hasRole = useAuthStore((state) => state.hasRole);
+    const [searchTerm, setSearchTerm] = useState('');
+    const debouncedSearch = useDebounce(searchTerm, 500);
+    const [page, setPage] = useState(0);
+    const size = 10;
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const { data, isLoading } = useCompanies({
+        search: debouncedSearch,
+        page,
+        size
+    });
+
     if (!hasRole(['SUPERADMIN'])) {
         return (
             <div className="flex flex-col items-center justify-center h-full space-y-4">
@@ -19,20 +31,6 @@ export const EmpresasPage = () => {
             </div>
         );
     }
-
-    const [searchTerm, setSearchTerm] = useState('');
-    const debouncedSearch = useDebounce(searchTerm, 500);
-    
-    const [page, setPage] = useState(0);
-    const size = 10;
-    
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
-    const { data, isLoading } = useCompanies({
-        search: debouncedSearch,
-        page,
-        size
-    });
 
     const companies = data?.content || [];
     const totalPages = data?.totalPages || 0;

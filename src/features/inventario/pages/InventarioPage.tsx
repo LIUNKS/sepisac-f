@@ -134,7 +134,7 @@ export const InventarioPage = () => {
                                     }`}
                                 >
                                     {tab.label}
-                                    {tab.showBadge && tab.count > 0 && (
+                                    {tab.showBadge && tab.count !== undefined && tab.count > 0 && (
                                         <span className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">
                                             {tab.count}
                                         </span>

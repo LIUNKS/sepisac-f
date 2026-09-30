@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useAuthStore } from '@/app/store/useAuthStore';
-import { Navigate } from 'react-router-dom';
+
 import { useCompanies } from '../api';
 import { CompaniesTable, CompanyFormModal } from '../components';
 

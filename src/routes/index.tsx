@@ -9,6 +9,7 @@ import { ProjectsPage } from '@/features/projects/pages/ProjectsPage';
 import { CotizacionesPage } from '@/features/cotizaciones/pages/CotizacionesPage';
 import { InventarioPage } from '@/features/inventario/pages/InventarioPage';
 import { EmpleadosPage } from '@/features/empleados/pages/EmpleadosPage';
+import { MaquinariaPage } from '@/features/maquinaria/pages/MaquinariaPage';
 import { UsuariosPage } from '@/features/usuarios/pages/UsuariosPage';
 import { EmpresasPage } from '@/features/empresas/pages/EmpresasPage';
 import { ReportesPage } from '@/features/reportes/pages/ReportesPage';
@@ -28,6 +29,7 @@ export const AppRoutes = () => {
                     <Route path="/proyectos" element={<ProjectsPage />} />
                     <Route path="/cotizaciones" element={<CotizacionesPage />} />
                     <Route path="/inventario" element={<InventarioPage />} />
+                    <Route path="/maquinaria" element={<MaquinariaPage />} />
                     <Route path="/empleados" element={<EmpleadosPage />} />
                     <Route path="/usuarios" element={<UsuariosPage />} />
                     <Route path="/empresas" element={<EmpresasPage />} />

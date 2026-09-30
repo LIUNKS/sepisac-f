@@ -1,33 +1,63 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+﻿import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Pencil, Download, FileText, CheckCircle2, Clock, DownloadCloud } from 'lucide-react';
+import { Eye, Pencil, Download, FileText, CheckCircle2, Clock, DownloadCloud, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-
-const kpisData = [
-    { title: 'Cotizaciones Emitidas', value: '128', trend: '+15% vs mes anterior', trendType: 'success', icon: FileText },
-    { title: 'Aprobadas (Éxito)', value: '95', trend: 'Tasa de conversión: 74%', trendType: 'success', icon: CheckCircle2 },
-    { title: 'Pendientes de Revisión', value: '15', trend: 'Esperando respuesta', trendType: 'warning', icon: Clock },
-];
-
-const quotesData = [
-    { id: 1, no: 'COT-2026-1045', client: 'Industrias Alpha S.A.', ruc: '20456789123', project: 'Mantenimiento Preventivo Faja', date: '12 Ago 2026', amount: 'S/ 4,500.00', status: 'Aprobada' },
-    { id: 2, no: 'COT-2026-1046', client: 'Alimentos del Sur EIRL', ruc: '20789456123', project: 'Instalación Sistema Refrigeración', date: '22 Ago 2026', amount: 'S/ 12,850.00', status: 'Pendiente' },
-    { id: 3, no: 'COT-2026-1047', client: 'Minera CobreX', ruc: '20123456789', project: 'Fabricación Piezas Metálicas', date: '25 Ago 2026', amount: 'S/ 8,200.00', status: 'Pendiente' },
-    { id: 4, no: 'COT-2026-1048', client: 'Constructora Litoral', ruc: '20987654321', project: 'Mantenimiento Eléctrico Tableros', date: '26 Ago 2026', amount: 'S/ 3,100.00', status: 'Rechazada' },
-];
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '@/app/store/useAuthStore';
+import { getQuotations } from '../services/quotation.service';
+import { ViewQuotationModal } from '../components/ViewQuotationModal';
+import { EditQuotationModal } from '../components/EditQuotationModal';
+import type { Quotation } from '../types';
 
 export const CotizacionesPage = () => {
     const [activeTab, setActiveTab] = useState('Todas');
+    const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const { user } = useAuthStore();
+
+    const { data, isLoading } = useQuery({
+        queryKey: ['quotations', user?.companyId],
+        queryFn: () => getQuotations(user?.companyId || '')
+    });
+
+    const quotations = data?.content || [];
 
     const tabs = [
-        { id: 'Todas', label: 'Todas', count: 128 },
-        { id: 'Pendientes', label: 'Pendientes', count: 0 },
-        { id: 'Aprobadas', label: 'Aprobadas', count: 0 },
-        { id: 'Rechazadas', label: 'Rechazadas', count: 0 },
+        { id: 'Todas', label: `Todas (${quotations.length})`, count: quotations.length },
+        { id: 'Pendientes', label: 'Pendientes', count: quotations.filter(q => q.status === 'PENDIENTE').length },
+        { id: 'Aprobadas', label: 'Aprobadas', count: quotations.filter(q => q.status === 'APROBADA').length },
+        { id: 'Rechazadas', label: 'Rechazadas', count: quotations.filter(q => q.status === 'RECHAZADA').length },
     ];
 
+    const filteredQuotations = quotations.filter(q => {
+        if (activeTab === 'Todas') return true;
+        if (activeTab === 'Pendientes') return q.status === 'PENDIENTE';
+        if (activeTab === 'Aprobadas') return q.status === 'APROBADA';
+        if (activeTab === 'Rechazadas') return q.status === 'RECHAZADA';
+        return true;
+    });
+
+    const totalIssued = quotations.length;
+    const totalApproved = quotations.filter(q => q.status === 'APROBADA').length;
+    const totalPending = quotations.filter(q => q.status === 'PENDIENTE').length;
+    const conversionRate = totalIssued > 0 ? Math.round((totalApproved / totalIssued) * 100) : 0;
+
+    const kpisData = [
+        { title: 'Cotizaciones Emitidas', value: totalIssued.toString(), trend: 'Este mes', trendType: 'success', icon: FileText },
+        { title: 'Aprobadas (Ãƒâ€°Ãƒâ€°xito)', value: totalApproved.toString(), trend: `Tasa de conversiÃƒÂ³n: ${conversionRate}%`, trendType: 'success', icon: CheckCircle2 },
+        { title: 'Pendientes de RevisiÃƒÂ³n', value: totalPending.toString(), trend: 'Esperando respuesta', trendType: 'warning', icon: Clock },
+    ];
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-[50vh]">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+        );
+    }
     return (
         <div className="space-y-6">
             
@@ -90,7 +120,7 @@ export const CotizacionesPage = () => {
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border/50 hover:bg-transparent bg-secondary/20">
-                                <TableHead className="text-muted-foreground font-semibold px-6">N° Cotización</TableHead>
+                                <TableHead className="text-muted-foreground font-semibold px-6">NÃƒâ€šÃ‚Â° CotizaciÃƒÆ’Ã‚Â³n</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Proyecto / Referencia</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Fecha</TableHead>
@@ -99,42 +129,62 @@ export const CotizacionesPage = () => {
                                 <TableHead className="text-muted-foreground font-semibold text-right px-6">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
-                        <TableBody>
-                            {quotesData.map((quote) => (
+                                                                        <TableBody>
+                            {filteredQuotations.map((quote) => (
                                 <TableRow key={quote.id} className="border-border/50 hover:bg-muted/50">
                                     <TableCell className="px-6 py-4 font-bold text-foreground">
-                                        {quote.no}
+                                        {quote.quotationNumber}
                                     </TableCell>
                                     <TableCell>
-                                        <div className="font-semibold text-foreground">{quote.client}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">RUC: {quote.ruc}</div>
+                                        <div className="font-semibold text-foreground">{quote.clientName}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">{quote.serviceType}</div>
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">{quote.project}</TableCell>
-                                    <TableCell className="text-muted-foreground">{quote.date}</TableCell>
-                                    <TableCell className="font-bold text-foreground">{quote.amount}</TableCell>
+                                    <TableCell className="text-muted-foreground">-</TableCell>
+                                    <TableCell className="text-muted-foreground">{new Date(quote.createdAt).toLocaleDateString()}</TableCell>
+                                    <TableCell className="font-bold text-foreground">{quote.currency} {quote.totalAmount.toFixed(2)}</TableCell>
                                     <TableCell>
                                         <Badge 
                                             variant="secondary" 
-                                            className={`gap-1.5 ${
-                                                quote.status === 'Aprobada' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
-                                                quote.status === 'Pendiente' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20' :
-                                                'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'
-                                            }`}
+                                            className={
+                                                `gap-1.5 ${
+                                                    quote.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
+                                                    quote.status === 'PENDIENTE' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20' :
+                                                    'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'
+                                                }`
+                                            }
                                         >
-                                            <span className={`w-1.5 h-1.5 rounded-full ${
-                                                quote.status === 'Aprobada' ? 'bg-emerald-600 dark:bg-emerald-400' :
-                                                quote.status === 'Pendiente' ? 'bg-amber-600 dark:bg-amber-400' :
-                                                'bg-red-600 dark:bg-red-400'
-                                            }`}></span>
+                                            <span className={
+                                                `w-1.5 h-1.5 rounded-full ${
+                                                    quote.status === 'APROBADA' ? 'bg-emerald-600 dark:bg-emerald-400' :
+                                                    quote.status === 'PENDIENTE' ? 'bg-amber-600 dark:bg-amber-400' :
+                                                    'bg-red-600 dark:bg-red-400'
+                                                }`
+                                            }></span>
                                             {quote.status}
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="px-6 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground">
+                                            <Button 
+                                                variant="outline" 
+                                                size="icon" 
+                                                className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                onClick={() => {
+                                                    setSelectedQuotation(quote);
+                                                    setIsViewModalOpen(true);
+                                                }}
+                                            >
                                                 <Eye className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground">
+                                            <Button 
+                                                variant="outline" 
+                                                size="icon" 
+                                                className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                onClick={() => {
+                                                    setSelectedQuotation(quote);
+                                                    setIsEditModalOpen(true);
+                                                }}
+                                            >
                                                 <Pencil className="w-4 h-4" />
                                             </Button>
                                             <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground">
@@ -148,6 +198,29 @@ export const CotizacionesPage = () => {
                     </Table>
                 </CardContent>
             </Card>
+                    <ViewQuotationModal
+                quotation={selectedQuotation}
+                isOpen={isViewModalOpen}
+                onClose={() => {
+                    setIsViewModalOpen(false);
+                    setSelectedQuotation(null);
+                }}
+            />
+                    <EditQuotationModal
+                quotation={selectedQuotation}
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedQuotation(null);
+                }}
+            />
         </div>
     );
 };
+
+
+
+
+
+
+

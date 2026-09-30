@@ -1,7 +1,7 @@
 ﻿import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Pencil, Download, FileText, CheckCircle2, Clock, DownloadCloud, Loader2 } from 'lucide-react';
+import { Eye, Pencil, Download, FileText, CheckCircle2, Clock, DownloadCloud, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -47,8 +47,8 @@ export const CotizacionesPage = () => {
 
     const kpisData = [
         { title: 'Cotizaciones Emitidas', value: totalIssued.toString(), trend: 'Este mes', trendType: 'success', icon: FileText },
-        { title: 'Aprobadas (Ãƒâ€°Ãƒâ€°xito)', value: totalApproved.toString(), trend: `Tasa de conversiÃƒÂ³n: ${conversionRate}%`, trendType: 'success', icon: CheckCircle2 },
-        { title: 'Pendientes de RevisiÃƒÂ³n', value: totalPending.toString(), trend: 'Esperando respuesta', trendType: 'warning', icon: Clock },
+        { title: 'Aprobadas (ÃƒÆ’Ã¢â‚¬Â°ÃƒÆ’Ã¢â‚¬Â°xito)', value: totalApproved.toString(), trend: `Tasa de conversiÃƒÆ’Ã‚Â³n: ${conversionRate}%`, trendType: 'success', icon: CheckCircle2 },
+        { title: 'Pendientes de RevisiÃƒÆ’Ã‚Â³n', value: totalPending.toString(), trend: 'Esperando respuesta', trendType: 'warning', icon: Clock },
     ];
 
     if (isLoading) {
@@ -110,17 +110,23 @@ export const CotizacionesPage = () => {
                                 </button>
                             ))}
                         </div>
-                        <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 mb-3 h-8 text-sm">
-                            <DownloadCloud className="w-4 h-4 mr-2" />
-                            Exportar Datos
-                        </Button>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 h-8 text-sm">
+                                <DownloadCloud className="w-4 h-4 mr-2" />
+                                Exportar Datos
+                            </Button>
+                            <Button className="h-8 text-sm">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Nueva Cotización
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border/50 hover:bg-transparent bg-secondary/20">
-                                <TableHead className="text-muted-foreground font-semibold px-6">NÃƒâ€šÃ‚Â° CotizaciÃƒÆ’Ã‚Â³n</TableHead>
+                                <TableHead className="text-muted-foreground font-semibold px-6">Nº Cotización</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Proyecto / Referencia</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Fecha</TableHead>
@@ -217,6 +223,8 @@ export const CotizacionesPage = () => {
         </div>
     );
 };
+
+
 
 
 

@@ -1,5 +1,5 @@
 import api from '@/lib/axios';
-import { Project, ProjectsResponse } from '../types';
+import type { Project, ProjectsResponse } from '../types';
 
 export const getProjects = async (companyId: string, page = 0, size = 10, search = ''): Promise<ProjectsResponse> => {
     const response = await api.get(`/projects/company/${companyId}`, {

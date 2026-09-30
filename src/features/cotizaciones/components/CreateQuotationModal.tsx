@@ -55,7 +55,7 @@ const formSchema = z.object({
     currency: z.enum(['PEN', 'USD']),
     exchangeRate: z.number().min(0),
     profitMarginPercentage: z.number().min(0),
-    companyId: z.string().optional(),
+    companyId: z.string().nullish(),
     details: z.array(detailSchema),
     laborRequirements: z.array(laborSchema),
 });
@@ -136,13 +136,20 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
 
     const onInvalid = (errors: any) => {
         console.error('Validation errors:', errors);
-        toast.error('Hay errores en el formulario, revise los campos marcados en rojo.');
+        const messages: string[] = [];
+        
         Object.keys(errors).forEach(key => {
             if (errors[key]?.message) {
-                toast.error(errors[key].message as string);
+                let msg = errors[key].message as string;
+                if (msg.includes('Expected string, received null')) msg = 'Campo vacío o inválido';
+                messages.push(`- ${key}: ${msg}`);
             } else if (Array.isArray(errors[key])) {
-                toast.error(`Hay un error en ${key} (Insumos o Personal)`);
+                messages.push(`- ${key}: Por favor complete todos los datos de las filas.`);
             }
+        });
+        
+        toast.error('Corrige los siguientes errores:', {
+            description: messages.join(', ')
         });
     };
 

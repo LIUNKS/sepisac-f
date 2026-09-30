@@ -92,8 +92,17 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
         },
     });
 
-    const onInvalid = () => {
-        toast.error('Hay errores en el formulario, revise los campos marcados en rojo.');
+    const onInvalid = (errors: any) => {
+        console.error('Validation errors:', errors);
+        const messages: string[] = [];
+        Object.keys(errors).forEach(key => {
+            if (errors[key]?.message) {
+                messages.push(`- ${key}: ${errors[key].message}`);
+            }
+        });
+        toast.error('Corrige los siguientes errores:', {
+            description: messages.join(', ')
+        });
     };
 
     const onSubmit = (data: FormValues) => {

@@ -47,8 +47,8 @@ export const CotizacionesPage = () => {
 
     const kpisData = [
         { title: 'Cotizaciones Emitidas', value: totalIssued.toString(), trend: 'Este mes', trendType: 'success', icon: FileText },
-        { title: 'Aprobadas (ÃƒÆ’Ã¢â‚¬Â°ÃƒÆ’Ã¢â‚¬Â°xito)', value: totalApproved.toString(), trend: `Tasa de conversiÃƒÆ’Ã‚Â³n: ${conversionRate}%`, trendType: 'success', icon: CheckCircle2 },
-        { title: 'Pendientes de RevisiÃƒÆ’Ã‚Â³n', value: totalPending.toString(), trend: 'Esperando respuesta', trendType: 'warning', icon: Clock },
+        { title: 'Aprobadas (Éxito)', value: totalApproved.toString(), trend: `Tasa de conversión: CheckCircle2 },
+        { title: 'Pendientes de Revisión: Clock },
     ];
 
     if (isLoading) {
@@ -126,7 +126,7 @@ export const CotizacionesPage = () => {
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border/50 hover:bg-transparent bg-secondary/20">
-                                <TableHead className="text-muted-foreground font-semibold px-6">Nº Cotización</TableHead>
+                                <TableHead classNº Cotización</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Proyecto / Referencia</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Fecha</TableHead>

@@ -6,11 +6,14 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/app/store/useAuthStore';
-import { getQuotations } from '../services/quotation.service';
+import { getQuotations, getQuotationById } from '../services/quotation.service';
 import { ViewQuotationModal } from '../components/ViewQuotationModal';
 import { EditQuotationModal } from '../components/EditQuotationModal';
 import { CreateQuotationModal } from '../components/CreateQuotationModal';
 import { exportQuotationsToExcel } from '../utils/exportToExcel';
+import { pdf } from '@react-pdf/renderer';
+import { QuotationPDF } from '../components/QuotationPDF';
+import { toast } from 'sonner';
 import type { Quotation } from '../types';
 
 export const CotizacionesPage = () => {
@@ -19,7 +22,31 @@ export const CotizacionesPage = () => {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const { user } = useAuthStore();
+
+    const handleDownloadPDF = async (id: string, quotationNumber: string) => {
+        setDownloadingId(id);
+        try {
+            const fullQuotation = await getQuotationById(id);
+            const blob = await pdf(<QuotationPDF quotation={fullQuotation} />).toBlob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            document.body.appendChild(a);
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `Cotizacion_${quotationNumber}.pdf`;
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toast.success('PDF descargado exitosamente');
+        } catch (error) {
+            console.error('Error generating PDF', error);
+            toast.error('Error al generar el PDF de la cotización');
+        } finally {
+            setDownloadingId(null);
+        }
+    };
 
     const { data, isLoading } = useQuery({
         queryKey: ['quotations', user?.companyId],
@@ -200,8 +227,8 @@ export const CotizacionesPage = () => {
                                             >
                                                 <Pencil className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground">
-                                                <Download className="w-4 h-4" />
+                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={() => handleDownloadPDF(quotation.id, quotation.quotationNumber)} disabled={downloadingId === quotation.id}>
+                                                {downloadingId === quotation.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                             </Button>
                                         </div>
                                     </TableCell>

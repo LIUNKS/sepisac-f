@@ -5,8 +5,11 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Building2, Calendar, ClipboardList, Info, FileText, CheckCircle } from 'lucide-react';
 import type { Quotation } from '../types';
+import { useState } from 'react';
+import { CreateProjectFromQuotationModal } from './CreateProjectFromQuotationModal';
 
 interface ViewQuotationModalProps {
     quotation: Quotation | null;
@@ -15,6 +18,8 @@ interface ViewQuotationModalProps {
 }
 
 export const ViewQuotationModal = ({ quotation, isOpen, onClose }: ViewQuotationModalProps) => {
+    const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+
     if (!quotation) return null;
 
     const formatDate = (dateStr: string | null) => {
@@ -136,9 +141,27 @@ export const ViewQuotationModal = ({ quotation, isOpen, onClose }: ViewQuotation
                                 </div>
                             </div>
                         </div>
+
+                        {quotation.status === 'APROBADA' && (
+                            <div className="pt-4 border-t border-border/50">
+                                <Button className="w-full" onClick={() => setIsConvertModalOpen(true)}>
+                                    Convertir a Proyecto
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </DialogContent>
+
+            <CreateProjectFromQuotationModal
+                quotation={quotation}
+                isOpen={isConvertModalOpen}
+                onClose={() => setIsConvertModalOpen(false)}
+                onSuccess={() => {
+                    setIsConvertModalOpen(false);
+                    onClose();
+                }}
+            />
         </Dialog>
     );
 };

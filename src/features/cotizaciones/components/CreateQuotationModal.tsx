@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -31,6 +31,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { createQuotation } from '../services/quotation.service';
+import { getInventory } from '@/features/inventario/services/inventory.service';
+import { useEmployees } from '@/features/empleados/api/empleados';
 
 const detailSchema = z.object({
     itemDescription: z.string().min(1, 'La descripción es obligatoria').max(255),
@@ -68,6 +70,16 @@ interface CreateQuotationModalProps {
 export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalProps) => {
     const queryClient = useQueryClient();
     const { user, isSuperAdmin } = useAuthStore();
+
+    const { data: inventoryData } = useQuery({
+        queryKey: ['inventory', user?.companyId],
+        queryFn: () => getInventory(user?.companyId, 0, 100, '%'),
+    });
+
+    const { data: employeesData } = useEmployees(user?.companyId, { page: 0, size: 100 });
+
+    const inventoryItems = inventoryData?.content || [];
+    const employeesList = employeesData?.content || [];
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -136,6 +148,16 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
                 <DialogHeader>
                     <DialogTitle>Nueva Cotización</DialogTitle>
                 </DialogHeader>
+
+                <datalist id="inventory-list">
+                    {inventoryItems.map(item => <option key={item.id} value={item.name} />)}
+                </datalist>
+                <datalist id="employees-list">
+                    {Array.from(new Set(employeesList.map(emp => emp.specialty))).map(spec => {
+                        const emp = employeesList.find(e => e.specialty === spec);
+                        return emp ? <option key={emp.id} value={emp.specialty} /> : null;
+                    })}
+                </datalist>
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -260,7 +282,16 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
                                         render={({ field }) => (
                                             <FormItem className="col-span-1 md:col-span-5">
                                                 <FormLabel>Descripción</FormLabel>
-                                                <FormControl><Input {...field} /></FormControl>
+                                                <FormControl>
+                                                    <Input list="inventory-list" {...field} onChange={e => {
+                                                        field.onChange(e);
+                                                        const selected = inventoryItems.find(item => item.name === e.target.value);
+                                                        if (selected) {
+                                                            form.setValue(`details.${index}.unitPrice` as any, selected.salePrice || selected.purchaseCost);
+                                                            form.setValue(`details.${index}.itemType` as any, 'MATERIAL');
+                                                        }
+                                                    }} />
+                                                </FormControl>
                                             </FormItem>
                                         )}
                                     />
@@ -328,7 +359,15 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
                                         render={({ field }) => (
                                             <FormItem className="col-span-1 md:col-span-5">
                                                 <FormLabel>Especialidad</FormLabel>
-                                                <FormControl><Input {...field} placeholder="Ej. Soldador Homologado" /></FormControl>
+                                                <FormControl>
+                                                    <Input list="employees-list" {...field} placeholder="Ej. Soldador Homologado" onChange={e => {
+                                                        field.onChange(e);
+                                                        const selected = employeesList.find(emp => emp.specialty === e.target.value);
+                                                        if (selected) {
+                                                            form.setValue(`laborRequirements.${index}.lockedHourlyCost` as any, selected.currentHourlyCost);
+                                                        }
+                                                    }} />
+                                                </FormControl>
                                             </FormItem>
                                         )}
                                     />

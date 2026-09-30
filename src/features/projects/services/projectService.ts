@@ -1,10 +1,12 @@
 import { apiClient } from '@/lib/axios';
 import type { Project, ProjectsResponse } from '../types';
 
-export const getProjects = async (companyId: string, page = 0, size = 10, search = ''): Promise<ProjectsResponse> => {
-    const response = await apiClient.get(`/projects/company/${companyId}`, {
-        params: { page, size, search: search || undefined }
-    });
+export const getProjects = async (companyId?: string, page = 0, size = 10, search = ''): Promise<ProjectsResponse> => {
+    const params: Record<string, any> = { page, size, search: search || undefined };
+    if (companyId) {
+        params.companyId = companyId;
+    }
+    const response = await apiClient.get('/projects', { params });
     return response.data;
 };
 
@@ -25,4 +27,8 @@ export const updateProject = async (id: string, data: Partial<Project>): Promise
 
 export const deleteProject = async (id: string): Promise<void> => {
     await apiClient.delete(`/projects/${id}`);
+};
+
+export const seedProjects = async (companyId: string): Promise<void> => {
+    await apiClient.post(`/projects/seed/${companyId}`);
 };

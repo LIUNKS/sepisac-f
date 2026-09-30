@@ -4,18 +4,34 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Pencil, SlidersHorizontal, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/app/store/useAuthStore';
-import { getProjects } from '../services/projectService';
+import { getProjects, seedProjects } from '../services/projectService';
+import { ViewProjectModal } from '../components/ViewProjectModal';
+import { EditProjectModal } from '../components/EditProjectModal';
+import type { Project } from '../types';
 
 export const ProjectsPage = () => {
     const [activeTab, setActiveTab] = useState('Todos');
+    const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const { user } = useAuthStore();
 
-    const { data, isLoading, error } = useQuery({
+    const { data, isLoading, isPending, error } = useQuery({
         queryKey: ['projects', user?.companyId],
-        queryFn: () => getProjects(user?.companyId || ''),
-        enabled: !!user?.companyId
+        queryFn: () => getProjects(user?.companyId || '')
+    });
+
+    const queryClient = useQueryClient();
+    const seedMutation = useMutation({
+        mutationFn: async () => {
+            if (!user?.companyId) throw new Error('No tienes empresa asignada');
+            await seedProjects(user.companyId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+        }
     });
 
     const projects = data?.content || [];
@@ -31,6 +47,19 @@ export const ProjectsPage = () => {
         if (activeTab === 'Todos') return true;
         return p.status.toUpperCase() === activeTab.toUpperCase();
     });
+
+    if (error) {
+        return (
+            <div className="text-center py-10 text-red-500">
+                <p className="font-bold text-lg">Error al cargar los proyectos</p>
+                <p className="text-sm mt-2">{error instanceof Error ? error.message : JSON.stringify(error)}</p>
+            </div>
+        );
+    }
+
+    if (isLoading || isPending || !data) {
+        return <div className="text-center py-10 text-muted-foreground">Cargando proyectos...</div>;
+    }
 
     return (
         <div className="space-y-6">
@@ -53,14 +82,16 @@ export const ProjectsPage = () => {
                             ))}
                         </div>
                         <div className="flex items-center gap-2 mb-3">
-                            <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 h-8 text-sm">
-                                <SlidersHorizontal className="w-4 h-4 mr-2" />
-                                Filtrar tabla
-                            </Button>
-                            <Button className="h-8 text-sm">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Nuevo Proyecto
-                            </Button>
+                            {projects.length === 0 && (
+                                <Button 
+                                    onClick={() => seedMutation.mutate()} 
+                                    disabled={seedMutation.isPending}
+                                    variant="outline" 
+                                    className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 h-8 text-sm"
+                                >
+                                    {seedMutation.isPending ? 'Generando...' : 'Generar Datos'}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </CardHeader>
@@ -122,10 +153,26 @@ export const ProjectsPage = () => {
                                     </TableCell>
                                     <TableCell className="px-6 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground">
+                                            <Button 
+                                                variant="outline" 
+                                                size="icon" 
+                                                className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                onClick={() => {
+                                                    setSelectedProject(project);
+                                                    setIsViewModalOpen(true);
+                                                }}
+                                            >
                                                 <Eye className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground">
+                                            <Button 
+                                                variant="outline" 
+                                                size="icon" 
+                                                className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                onClick={() => {
+                                                    setSelectedProject(project);
+                                                    setIsEditModalOpen(true);
+                                                }}
+                                            >
                                                 <Pencil className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -136,6 +183,18 @@ export const ProjectsPage = () => {
                     </Table>
                 </CardContent>
             </Card>
+
+            <ViewProjectModal 
+                project={selectedProject} 
+                isOpen={isViewModalOpen} 
+                onClose={() => setIsViewModalOpen(false)} 
+            />
+            
+            <EditProjectModal 
+                project={selectedProject} 
+                isOpen={isEditModalOpen} 
+                onClose={() => setIsEditModalOpen(false)} 
+            />
         </div>
     );
 };

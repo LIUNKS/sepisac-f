@@ -197,7 +197,7 @@ export const DashboardPage = () => {
                                     <YAxis hide />
                                     <RechartsTooltip 
                                         cursor={{fill: 'hsl(var(--muted))', opacity: 0.5}} 
-                                        formatter={(value: number) => [`S/ ${(value * 1000).toLocaleString()}`, undefined]}
+                                        formatter={(value: any) => [`S/ ${(Number(value) * 1000).toLocaleString()}`, undefined]}
                                         contentStyle={{
                                             backgroundColor: 'hsl(var(--card))', 
                                             color: 'hsl(var(--foreground))',

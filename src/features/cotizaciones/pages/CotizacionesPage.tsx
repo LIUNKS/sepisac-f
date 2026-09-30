@@ -45,10 +45,10 @@ export const CotizacionesPage = () => {
     const totalPending = quotations.filter(q => q.status === 'PENDIENTE').length;
     const conversionRate = totalIssued > 0 ? Math.round((totalApproved / totalIssued) * 100) : 0;
 
-    const kpisData = [
+            const kpisData = [
         { title: 'Cotizaciones Emitidas', value: totalIssued.toString(), trend: 'Este mes', trendType: 'success', icon: FileText },
-        { title: 'Aprobadas (Éxito)', value: totalApproved.toString(), trend: `Tasa de conversión: CheckCircle2 },
-        { title: 'Pendientes de Revisión: Clock },
+        { title: 'Aprobadas (Éxito)', value: totalApproved.toString(), trend: `Tasa de conversión: ${conversionRate}%`, trendType: 'success', icon: CheckCircle2 },
+        { title: 'Pendientes de Revisión', value: totalPending.toString(), trend: 'Por gestionar', trendType: 'warning', icon: Clock },
     ];
 
     if (isLoading) {
@@ -126,7 +126,7 @@ export const CotizacionesPage = () => {
                     <Table>
                         <TableHeader>
                             <TableRow className="border-border/50 hover:bg-transparent bg-secondary/20">
-                                <TableHead classNº Cotización</TableHead>
+                                <TableHead className="text-muted-foreground font-semibold px-6">Nº Cotización</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Proyecto / Referencia</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Fecha</TableHead>

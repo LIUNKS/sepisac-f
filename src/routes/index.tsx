@@ -5,6 +5,7 @@ import { AuthLayout } from '@/layouts/AuthLayout';
 import { AppLayout } from '@/layouts/AppLayout';
 import { LoginPage } from '@/features/auth';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
+import { ComprasPage } from '@/features/compras/pages/ComprasPage';
 import { ProjectsPage } from '@/features/projects/pages/ProjectsPage';
 import { CotizacionesPage } from '@/features/cotizaciones/pages/CotizacionesPage';
 import { InventarioPage } from '@/features/inventario/pages/InventarioPage';
@@ -28,6 +29,7 @@ export const AppRoutes = () => {
                     <Route path="/proyectos" element={<ProjectsPage />} />
                     <Route path="/cotizaciones" element={<CotizacionesPage />} />
                     <Route path="/inventario" element={<InventarioPage />} />
+                    <Route path="/compras" element={<ComprasPage />} />
                     <Route path="/empleados" element={<EmpleadosPage />} />
                     <Route path="/usuarios" element={<UsuariosPage />} />
                     <Route path="/empresas" element={<EmpresasPage />} />

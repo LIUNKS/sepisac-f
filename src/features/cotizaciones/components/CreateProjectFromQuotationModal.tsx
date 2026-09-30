@@ -82,6 +82,10 @@ export const CreateProjectFromQuotationModal = ({ quotation, isOpen, onClose, on
         },
     });
 
+    const onInvalid = () => {
+        toast.error('Hay errores en el formulario, revise los campos marcados en rojo.');
+    };
+
     const onSubmit = (data: FormValues) => {
         if (!quotation) return;
         
@@ -104,7 +108,7 @@ export const CreateProjectFromQuotationModal = ({ quotation, isOpen, onClose, on
                 </DialogHeader>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-4">
                         <FormField
                             control={form.control}
                             name="code"

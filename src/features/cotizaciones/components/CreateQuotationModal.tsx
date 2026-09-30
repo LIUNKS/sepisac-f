@@ -134,6 +134,18 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
         },
     });
 
+    const onInvalid = (errors: any) => {
+        console.error('Validation errors:', errors);
+        toast.error('Hay errores en el formulario, revise los campos marcados en rojo.');
+        Object.keys(errors).forEach(key => {
+            if (errors[key]?.message) {
+                toast.error(errors[key].message as string);
+            } else if (Array.isArray(errors[key])) {
+                toast.error(`Hay un error en ${key} (Insumos o Personal)`);
+            }
+        });
+    };
+
     const onSubmit = (data: FormValues) => {
         if (isSuperAdmin && !data.companyId) {
             toast.error('Debe proporcionar un ID de empresa al crear como Superadmin');
@@ -160,7 +172,7 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
                 </datalist>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {isSuperAdmin && (

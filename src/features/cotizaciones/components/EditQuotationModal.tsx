@@ -92,6 +92,10 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
         },
     });
 
+    const onInvalid = () => {
+        toast.error('Hay errores en el formulario, revise los campos marcados en rojo.');
+    };
+
     const onSubmit = (data: FormValues) => {
         updateMutation.mutate(data);
     };
@@ -104,7 +108,7 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
                 </DialogHeader>
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-4">
                         
                         <FormField
                             control={form.control}

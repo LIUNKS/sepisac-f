@@ -8,6 +8,7 @@ import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
 import { ProjectsPage } from '@/features/projects/pages/ProjectsPage';
 import { CotizacionesPage } from '@/features/cotizaciones/pages/CotizacionesPage';
 import { InventarioPage } from '@/features/inventario/pages/InventarioPage';
+import { UsuariosPage } from '@/features/usuarios/pages/UsuariosPage';
 
 export const AppRoutes = () => {
     return (
@@ -24,6 +25,7 @@ export const AppRoutes = () => {
                     <Route path="/proyectos" element={<ProjectsPage />} />
                     <Route path="/cotizaciones" element={<CotizacionesPage />} />
                     <Route path="/inventario" element={<InventarioPage />} />
+                    <Route path="/usuarios" element={<UsuariosPage />} />
 
                     {/* Rutas Protegidas por Roles Específicos */}
                     <Route element={<RoleGuard allowedRoles={['ROLE_ADMIN', 'SUPERADMIN']} />}>

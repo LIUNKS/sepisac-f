@@ -1,26 +1,36 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Pencil, SlidersHorizontal } from 'lucide-react';
+import { Eye, Pencil, SlidersHorizontal, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-
-const projectsData = [
-    { id: 1, name: 'Planta Minera Cerro Verde', date: '15 Jul 2026', client: 'Cerro Verde SAA', engineer: 'R. Torres', status: 'En progreso', progress: 65 },
-    { id: 2, name: 'Mantenimiento Bombas Hidráulicas', date: '02 Jul 2026', client: 'Petroperú', engineer: 'M. Quispe', status: 'Completado', progress: 100 },
-    { id: 3, name: 'Instalación Línea Eléctrica HV', date: '22 Jul 2026', client: 'Antamina S.A.', engineer: 'L. Flores', status: 'Pendiente', progress: 0 },
-    { id: 4, name: 'Construcción Estructura Metálica', date: '18 Jul 2026', client: 'SiderPerú', engineer: 'R. Torres', status: 'En progreso', progress: 40 },
-];
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '@/app/store/useAuthStore';
+import { getProjects } from '../services/projectService';
 
 export const ProjectsPage = () => {
     const [activeTab, setActiveTab] = useState('Todos');
+    const { user } = useAuthStore();
+
+    const { data, isLoading, error } = useQuery({
+        queryKey: ['projects', user?.companyId],
+        queryFn: () => getProjects(user?.companyId || ''),
+        enabled: !!user?.companyId
+    });
+
+    const projects = data?.content || [];
 
     const tabs = [
-        { id: 'Todos', label: 'Todos los Proyectos (24)' },
-        { id: 'En progreso', label: 'En progreso (8)' },
-        { id: 'Completados', label: 'Completados (12)' },
-        { id: 'Pendientes', label: 'Pendientes (4)' },
+        { id: 'Todos', label: `Todos los Proyectos (${projects.length})` },
+        { id: 'En progreso', label: `En progreso (${projects.filter(p => p.status === 'EN PROGRESO').length})` },
+        { id: 'Completados', label: `Completados (${projects.filter(p => p.status === 'COMPLETADO').length})` },
+        { id: 'Pendientes', label: `Pendientes (${projects.filter(p => p.status === 'PENDIENTE').length})` },
     ];
+
+    const filteredProjects = projects.filter(p => {
+        if (activeTab === 'Todos') return true;
+        return p.status.toUpperCase() === activeTab.toUpperCase();
+    });
 
     return (
         <div className="space-y-6">
@@ -42,10 +52,16 @@ export const ProjectsPage = () => {
                                 </button>
                             ))}
                         </div>
-                        <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 mb-3 h-8 text-sm">
-                            <SlidersHorizontal className="w-4 h-4 mr-2" />
-                            Filtrar tabla
-                        </Button>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 h-8 text-sm">
+                                <SlidersHorizontal className="w-4 h-4 mr-2" />
+                                Filtrar tabla
+                            </Button>
+                            <Button className="h-8 text-sm">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Nuevo Proyecto
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -54,45 +70,54 @@ export const ProjectsPage = () => {
                             <TableRow className="border-border/50 hover:bg-transparent bg-secondary/20">
                                 <TableHead className="text-muted-foreground font-semibold px-6">Proyecto</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
-                                <TableHead className="text-muted-foreground font-semibold">Ingeniero</TableHead>
+                                <TableHead className="text-muted-foreground font-semibold">Código</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Estado</TableHead>
-                                <TableHead className="text-muted-foreground font-semibold">Avance</TableHead>
+                                <TableHead className="text-muted-foreground font-semibold">Fechas</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold text-right px-6">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {projectsData.map((project) => (
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        Cargando proyectos...
+                                    </TableCell>
+                                </TableRow>
+                            ) : error ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8 text-red-500">
+                                        Error al cargar proyectos
+                                    </TableCell>
+                                </TableRow>
+                            ) : filteredProjects.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                        No hay proyectos para mostrar
+                                    </TableCell>
+                                </TableRow>
+                            ) : filteredProjects.map((project) => (
                                 <TableRow key={project.id} className="border-border/50 hover:bg-muted/50">
                                     <TableCell className="px-6 py-4">
-                                        <div className="font-semibold text-foreground">{project.name}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">{project.date}</div>
+                                        <div className="font-semibold text-foreground">{project.title}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">{project.description || 'Sin descripción'}</div>
                                     </TableCell>
-                                    <TableCell className="text-foreground font-medium">{project.client}</TableCell>
-                                    <TableCell className="text-muted-foreground">{project.engineer}</TableCell>
+                                    <TableCell className="text-foreground font-medium">{project.clientName}</TableCell>
+                                    <TableCell className="text-muted-foreground">{project.code}</TableCell>
                                     <TableCell>
                                         <Badge 
                                             variant="secondary" 
                                             className={
-                                                project.status === 'En progreso' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' :
-                                                project.status === 'Completado' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
+                                                project.status === 'EN PROGRESO' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' :
+                                                project.status === 'COMPLETADO' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
                                                 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20'
                                             }
                                         >
                                             {project.status}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="w-48">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
-                                                <div 
-                                                    className={`h-full rounded-full ${
-                                                        project.progress === 100 ? 'bg-emerald-500' : 
-                                                        project.progress === 0 ? 'bg-amber-400' : 'bg-blue-600'
-                                                    }`}
-                                                    style={{ width: `${project.progress}%` }}
-                                                />
-                                            </div>
-                                            <span className="text-sm font-medium text-muted-foreground w-8 text-right">{project.progress}%</span>
+                                    <TableCell className="text-muted-foreground">
+                                        <div className="text-sm">
+                                            {project.startDate || '-'} / {project.endDate || '-'}
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 text-right">

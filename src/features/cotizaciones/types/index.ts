@@ -1,4 +1,4 @@
-export interface Quotation {
+﻿export interface Quotation {
     id: string;
     companyId: string;
     companyName: string;
@@ -14,6 +14,8 @@ export interface Quotation {
     detailsCount: number;
     laborCount: number;
     createdAt: string;
+    details?: QuotationDetail[];
+    laborRequirements?: QuotationLabor[];
 }
 
 export interface QuotationsResponse {
@@ -23,4 +25,22 @@ export interface QuotationsResponse {
     totalElements: number;
     totalPages: number;
     last: boolean;
+}
+
+export interface QuotationDetail {
+    id: string;
+    itemDescription: string;
+    itemType: string;
+    quantity: number;
+    unitPrice: number;
+    subtotal: number;
+}
+
+export interface QuotationLabor {
+    id: string;
+    specialtyNeeded: string;
+    quantityRequired: number;
+    estimatedHours: number;
+    lockedHourlyCost: number;
+    subtotal: number;
 }

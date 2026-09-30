@@ -6,7 +6,10 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Building2, Calendar, ClipboardList, Info, FileText, CheckCircle } from 'lucide-react';
+import { Building2, Calendar, ClipboardList, Info, FileText, CheckCircle, Download, Loader2 } from 'lucide-react';
+import { pdf } from '@react-pdf/renderer';
+import { QuotationPDF } from './QuotationPDF';
+import { toast } from 'sonner';
 import type { Quotation } from '../types';
 import { useState } from 'react';
 import { CreateProjectFromQuotationModal } from './CreateProjectFromQuotationModal';
@@ -19,6 +22,27 @@ interface ViewQuotationModalProps {
 
 export const ViewQuotationModal = ({ quotation, isOpen, onClose }: ViewQuotationModalProps) => {
     const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+    const handleDownloadPDF = async () => {
+        if (!quotation) return;
+        setIsGeneratingPDF(true);
+        try {
+            const blob = await pdf(<QuotationPDF quotation={quotation} />).toBlob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Cotizacion_${quotation.quotationNumber}.pdf`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast.success('PDF generado exitosamente');
+        } catch (error) {
+            console.error('Error generating PDF', error);
+            toast.error('Error al generar el PDF');
+        } finally {
+            setIsGeneratingPDF(false);
+        }
+    };
 
     if (!quotation) return null;
 
@@ -51,17 +75,23 @@ export const ViewQuotationModal = ({ quotation, isOpen, onClose }: ViewQuotation
                                 </p>
                             </div>
                         </div>
-                        <Badge 
-                            variant="secondary" 
-                            className={
-                                quotation.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
-                                quotation.status === 'PENDIENTE' ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' :
-                                quotation.status === 'ENVIADA' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
-                                'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
-                            }
-                        >
-                            {quotation.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+                                {isGeneratingPDF ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+                                PDF
+                            </Button>
+                            <Badge 
+                                variant="secondary" 
+                                className={
+                                    quotation.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                                    quotation.status === 'PENDIENTE' ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' :
+                                    quotation.status === 'ENVIADA' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
+                                    'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+                                }
+                            >
+                                {quotation.status}
+                            </Badge>
+                        </div>
                     </div>
                 </DialogHeader>
 

@@ -10,6 +10,7 @@ import { getQuotations } from '../services/quotation.service';
 import { ViewQuotationModal } from '../components/ViewQuotationModal';
 import { EditQuotationModal } from '../components/EditQuotationModal';
 import { CreateQuotationModal } from '../components/CreateQuotationModal';
+import { exportQuotationsToExcel } from '../utils/exportToExcel';
 import type { Quotation } from '../types';
 
 export const CotizacionesPage = () => {
@@ -113,7 +114,11 @@ export const CotizacionesPage = () => {
                             ))}
                         </div>
                         <div className="flex items-center gap-2 mb-3">
-                            <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 h-8 text-sm">
+                            <Button variant="ghost" className="text-primary hover:text-primary hover:bg-primary/10 h-8 text-sm" onClick={() => {
+                                if (filteredQuotations) {
+                                    exportQuotationsToExcel(filteredQuotations);
+                                }
+                            }}>
                                 <DownloadCloud className="w-4 h-4 mr-2" />
                                 Exportar Datos
                             </Button>

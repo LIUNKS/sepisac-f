@@ -1,4 +1,4 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError } from 'axios';
 import { env } from '@/config/env';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { toast } from 'sonner';
@@ -6,22 +6,12 @@ import type { ApiErrorResponse } from '@/types/api';
 
 export const apiClient = axios.create({
     baseURL: env.VITE_API_BASE_URL,
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     },
     timeout: 15000,
 });
-
-apiClient.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-        const token = useAuthStore.getState().token;
-        if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
 
 apiClient.interceptors.response.use(
     (response) => response,

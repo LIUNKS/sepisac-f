@@ -5,7 +5,6 @@ import type { AuthResponseDTO, AuthUser } from '@/features/auth/types/auth.types
 export type { AuthUser };
 
 interface AuthState {
-    token: string | null;
     user: AuthUser | null;
     isAuthenticated: boolean;
     setAuth: (data: AuthResponseDTO) => void;
@@ -16,7 +15,6 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
     persist(
         (set, get) => ({
-            token: null,
             user: null,
             isAuthenticated: false,
             setAuth: (data: AuthResponseDTO) => {
@@ -27,12 +25,11 @@ export const useAuthStore = create<AuthState>()(
                     companyId: data.companyId,
                 };
                 set({
-                    token: data.token,
                     user,
                     isAuthenticated: true,
                 });
             },
-            logout: () => set({ token: null, user: null, isAuthenticated: false }),
+            logout: () => set({ user: null, isAuthenticated: false }),
             hasRole: (allowedRoles: string[]) => {
                 const user = get().user;
                 if (!user || !user.role) return false;

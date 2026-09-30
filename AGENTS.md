@@ -169,3 +169,51 @@ export interface ApiErrorResponse {
 2. **Preservación de Contratos:** Si modificas la firma de un hook, función o API cliente, debes actualizar todos sus puntos de llamada en la aplicación.
 3. **Internacionalización y Mensajes:** Todos los mensajes de error en UI, esquemas Zod y toasters deben redactarse en **Español**.
 4. **Documentación:** Mantener actualizados los documentos en `docs/` (`SPEC.md` y `MANUAL_PASO_A_PASO.md`) si se introducen cambios de arquitectura o flujos principales.
+
+---
+
+## 9. 🌳 Flujo de Trabajo en Ramas (Gitflow)
+
+El proyecto utiliza estrictamente el modelo **Gitflow** para el control de versiones y ciclo de vida de desarrollo.
+
+### 📌 Ramas y Convenciones
+
+| Rama / Patrón | Rama Base | Destino (Merge) | Propósito y Reglas |
+| :--- | :--- | :--- | :--- |
+| **`main`** | — | — | **Producción.** Solo código estable y probado. Prohibido hacer commits directos. Se actualiza mediante merge de `release/*` o `hotfix/*` y se etiqueta con un tag semántico (`vX.Y.Z`). |
+| **`develop`** | `main` | — | **Integración y desarrollo activo.** Centraliza las funcionalidades listas para el próximo release. |
+| **`feature/[nombre]`** | `develop` | `develop` | **Nuevas funcionalidades o tareas.** Nomenclatura sugerida: `feature/auth-login`, `feature/usuarios-crud`. Debe pasar `npm run build` y `npm run lint` antes de integrarse. |
+| **`release/[version]`** | `develop` | `main` y `develop` | **Preparación de versión.** Nomenclatura sugerida: `release/v1.0.0`. Se realizan pruebas finales, congelamiento de características y correcciones menores previas al despliegue. |
+| **`hotfix/[nombre]`** | `main` | `main` y `develop` | **Corrección urgente en producción.** Nomenclatura sugerida: `hotfix/fix-token-expiration`. Se crea a partir de `main` y, tras validarse, se fusiona tanto en `main` (con nuevo tag) como en `develop`. |
+
+### 🛠️ Comandos Operativos Clave
+
+1. **Crear una nueva feature:**
+   ```bash
+   git checkout develop
+   git pull origin develop
+   git checkout -b feature/nombre-funcionalidad
+   ```
+
+2. **Cerrar una feature e integrar a `develop`:**
+   ```bash
+   npm run build
+   npm run lint
+   git checkout develop
+   git merge --no-ff feature/nombre-funcionalidad
+   git branch -d feature/nombre-funcionalidad
+   ```
+
+3. **Crear y cerrar un hotfix urgente:**
+   ```bash
+   git checkout main
+   git checkout -b hotfix/descripcion-error
+   # ... solución y pruebas ...
+   git checkout main
+   git merge --no-ff hotfix/descripcion-error
+   git tag -a vX.Y.Z -m "Hotfix: breve descripción"
+   git checkout develop
+   git merge --no-ff hotfix/descripcion-error
+   git branch -d hotfix/descripcion-error
+   ```
+

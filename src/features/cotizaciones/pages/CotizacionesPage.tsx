@@ -1,4 +1,4 @@
-﻿import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Pencil, Download, FileText, CheckCircle2, Clock, DownloadCloud, Loader2, Plus } from 'lucide-react';
@@ -9,6 +9,7 @@ import { useAuthStore } from '@/app/store/useAuthStore';
 import { getQuotations } from '../services/quotation.service';
 import { ViewQuotationModal } from '../components/ViewQuotationModal';
 import { EditQuotationModal } from '../components/EditQuotationModal';
+import { CreateQuotationModal } from '../components/CreateQuotationModal';
 import type { Quotation } from '../types';
 
 export const CotizacionesPage = () => {
@@ -16,6 +17,7 @@ export const CotizacionesPage = () => {
     const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const { user } = useAuthStore();
 
     const { data, isLoading } = useQuery({
@@ -115,7 +117,7 @@ export const CotizacionesPage = () => {
                                 <DownloadCloud className="w-4 h-4 mr-2" />
                                 Exportar Datos
                             </Button>
-                            <Button className="h-8 text-sm">
+                            <Button className="h-8 text-sm" onClick={() => setIsCreateModalOpen(true)}>
                                 <Plus className="w-4 h-4 mr-2" />
                                 Nueva Cotización
                             </Button>
@@ -219,6 +221,10 @@ export const CotizacionesPage = () => {
                     setIsEditModalOpen(false);
                     setSelectedQuotation(null);
                 }}
+            />
+            <CreateQuotationModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
             />
         </div>
     );

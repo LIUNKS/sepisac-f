@@ -18,9 +18,17 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Building2, FileText, Phone, Mail, Loader2 } from 'lucide-react';
 import { useCreateSupplier, useUpdateSupplier } from '../hooks/useSuppliers';
 import { useAuthStore } from '@/app/store/useAuthStore';
+import { useCompanies } from '@/features/empresas/api';
 import type { Supplier } from '../types';
 
 const supplierSchema = z.object({
@@ -46,6 +54,11 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
 
     const createMutation = useCreateSupplier();
     const updateMutation = useUpdateSupplier();
+
+    const { data: companiesData, isLoading: isLoadingCompanies } = useCompanies(
+        { page: 0, size: 100 }
+    );
+    const companies = companiesData?.content || [];
 
     const form = useForm<FormValues>({
         resolver: zodResolver(supplierSchema),
@@ -117,10 +130,25 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
                                 name="companyId"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>ID de Empresa (Superadmin)</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Ej: 550e8400-e29b-41d4-a716-446655440000" {...field} value={field.value || ''} />
-                                        </FormControl>
+                                        <FormLabel>Empresa Destino (Superadmin)</FormLabel>
+                                        <Select 
+                                            onValueChange={field.onChange} 
+                                            defaultValue={field.value || undefined}
+                                            value={field.value || undefined}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger className="w-full">
+                                                    <SelectValue placeholder={isLoadingCompanies ? "Cargando empresas..." : "Seleccione una empresa"} />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {companies.map((company) => (
+                                                    <SelectItem key={company.id} value={company.id}>
+                                                        {company.businessName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                         <FormMessage />
                                     </FormItem>
                                 )}

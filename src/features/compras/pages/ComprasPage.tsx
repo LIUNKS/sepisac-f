@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Building2, Pencil, Search, Plus, Trash2, ShoppingCart, Loader2 } from 'lucide-react';
+import { Building2, Pencil, Search, Plus, Trash2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { useSuppliers, useDeleteSupplier } from '../hooks/useSuppliers';
@@ -43,7 +43,7 @@ export const ComprasPage = () => {
 
     const tabs = [
         { id: 'Proveedores', label: 'Proveedores', icon: Building2 },
-        { id: 'Ordenes', label: 'Órdenes de Compra', icon: ShoppingCart },
+        
     ];
 
     return (
@@ -150,16 +150,7 @@ export const ComprasPage = () => {
                 </Card>
             )}
 
-            {activeTab === 'Ordenes' && (
-                <div className="text-center py-20 px-4">
-                    <ShoppingCart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-foreground mb-2">Órdenes de Compra</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto">
-                        Este módulo permite registrar y gestionar compras de inventario.
-                        Su funcionalidad estará disponible próximamente en la siguiente fase del ERP.
-                    </p>
-                </div>
-            )}
+
 
             <SupplierModal 
                 isOpen={isModalOpen}

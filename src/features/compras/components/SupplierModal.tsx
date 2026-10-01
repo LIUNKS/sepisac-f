@@ -79,13 +79,20 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
     }, [supplierToEdit, isOpen, form, user, isSuperAdmin]);
 
     const onSubmit = (data: FormValues) => {
+        const payload = {
+            ...data,
+            companyId: data.companyId || undefined,
+            contactPhone: data.contactPhone || undefined,
+            email: data.email || undefined,
+        };
+
         if (isEditing && supplierToEdit) {
             updateMutation.mutate(
-                { id: supplierToEdit.id, data },
+                { id: supplierToEdit.id, data: payload },
                 { onSuccess: () => onClose() }
             );
         } else {
-            createMutation.mutate(data, { onSuccess: () => onClose() });
+            createMutation.mutate(payload, { onSuccess: () => onClose() });
         }
     };
 
@@ -112,7 +119,7 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
                                     <FormItem>
                                         <FormLabel>ID de Empresa (Superadmin)</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="UUID de la empresa" {...field} value={field.value || ''} />
+                                            <Input placeholder="Ej: 550e8400-e29b-41d4-a716-446655440000" {...field} value={field.value || ''} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -129,7 +136,7 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
                                         <FileText className="w-4 h-4" /> RUC
                                     </FormLabel>
                                     <FormControl>
-                                        <Input placeholder="20000000001" {...field} />
+                                        <Input placeholder="Ej: 20123456789 (11 dígitos)" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -145,7 +152,7 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
                                         <Building2 className="w-4 h-4" /> Razón Social
                                     </FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Nombre de la empresa proveedora" {...field} />
+                                        <Input placeholder="Ej: Importaciones Industriales S.A.C." {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -162,7 +169,7 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
                                             <Phone className="w-4 h-4" /> Teléfono
                                         </FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Opcional" {...field} />
+                                            <Input placeholder="Ej: +51 987 654 321" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -178,7 +185,7 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
                                             <Mail className="w-4 h-4" /> Correo
                                         </FormLabel>
                                         <FormControl>
-                                            <Input type="email" placeholder="Opcional" {...field} />
+                                            <Input type="email" placeholder="Ej: ventas@proveedor.com" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

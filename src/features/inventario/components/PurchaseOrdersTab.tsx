@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { PreviewAutoGenerateModal } from './PreviewAutoGenerateModal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,9 +23,7 @@ export const PurchaseOrdersTab = () => {
     };
 
     const handleAutoGen = () => {
-        if (window.confirm('¿Desea autogenerar órdenes de compra para los ítems con bajo stock?')) {
-            autoGenMutation.mutate(undefined);
-        }
+        setIsPreviewModalOpen(true);
     };
 
     return (
@@ -40,7 +39,7 @@ export const PurchaseOrdersTab = () => {
                     </p>
                 </div>
                 <Button onClick={handleAutoGen}  variant="default">
-                    {autoGenMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Settings className="w-4 h-4 mr-2" />}
+                    <Settings className="w-4 h-4 mr-2" />
                     Autogenerar Órdenes
                 </Button>
             </div>

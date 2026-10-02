@@ -59,3 +59,11 @@ export const useAutoGenerateOrders = () => {
         }
     });
 };
+
+export const usePreviewAutoGenerateOrders = (companyId?: string) => {
+    return useQuery({
+        queryKey: [...purchaseOrderKeys.all, 'preview', companyId],
+        queryFn: () => previewAutoGenerateOrders(companyId),
+        enabled: false, // Solo se ejecuta al hacer click
+    });
+};

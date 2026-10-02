@@ -28,3 +28,9 @@ export const autoGenerateOrders = async (companyId?: string): Promise<AutoGenera
     const response = await apiClient.post(url);
     return response.data;
 };
+
+export const previewAutoGenerateOrders = async (companyId?: string): Promise<PurchaseOrder[]> => {
+    const url = companyId ? `/purchase-orders/auto-generate/preview?companyId=${companyId}` : '/purchase-orders/auto-generate/preview';
+    const response = await apiClient.get(url);
+    return response.data;
+};

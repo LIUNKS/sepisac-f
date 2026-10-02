@@ -3,15 +3,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, Settings, Ban, FileText } from 'lucide-react';
-import { usePurchaseOrders, useCancelPurchaseOrder, useAutoGenerateOrders } from '../hooks/usePurchaseOrders';
+import { usePurchaseOrders, useCancelPurchaseOrder } from '../hooks/usePurchaseOrders';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 
 export const PurchaseOrdersTab = () => {
     const [page] = useState(0);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const { data, isLoading } = usePurchaseOrders({ page, size: 20, sort: 'createdAt,desc' });
     const cancelMutation = useCancelPurchaseOrder();
-    const autoGenMutation = useAutoGenerateOrders();
 
     const orders = data?.content || [];
 
@@ -39,7 +39,7 @@ export const PurchaseOrdersTab = () => {
                         Gestiona las compras a proveedores y la reposición de stock.
                     </p>
                 </div>
-                <Button onClick={handleAutoGen} disabled={autoGenMutation.isPending} variant="default">
+                <Button onClick={handleAutoGen}  variant="default">
                     {autoGenMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Settings className="w-4 h-4 mr-2" />}
                     Autogenerar Órdenes
                 </Button>
@@ -108,6 +108,11 @@ export const PurchaseOrdersTab = () => {
                     </TableBody>
                 </Table>
             </div>
+
+            <PreviewAutoGenerateModal 
+                isOpen={isPreviewModalOpen} 
+                onClose={() => setIsPreviewModalOpen(false)} 
+            />
         </div>
     );
 };

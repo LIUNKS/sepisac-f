@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Settings, Ban, FileText } from 'lucide-react';
 import { usePurchaseOrders, useCancelPurchaseOrder, useAutoGenerateOrders } from '../hooks/usePurchaseOrders';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { es } from 'date-fns/locale/es';
 
 export const PurchaseOrdersTab = () => {
     const [page] = useState(0);

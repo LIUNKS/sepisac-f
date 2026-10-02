@@ -26,3 +26,4 @@ export interface InventoryPageResponse {
     totalPages: number;
     last: boolean;
 }
+export * from './purchase-order';

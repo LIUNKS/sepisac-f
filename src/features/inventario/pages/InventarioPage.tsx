@@ -12,6 +12,7 @@ import { EditInventoryItemModal } from '../components/EditInventoryItemModal';
 import { ViewInventoryItemModal } from '../components/ViewInventoryItemModal';
 import type { InventoryItem } from '../types';
 import { exportInventoryToExcel } from '../utils/exportInventoryToExcel';
+import { PurchaseOrdersTab } from '../components/PurchaseOrdersTab';
 
 export const InventarioPage = () => {
     const [activeTab, setActiveTab] = useState('Todos');
@@ -48,6 +49,7 @@ export const InventarioPage = () => {
         { id: 'Herramientas', label: `Herramientas`, showBadge: false },
         { id: 'Consumibles', label: `Consumibles`, showBadge: false },
         { id: 'EPP', label: `Protección Personal`, showBadge: false },
+        { id: 'Ordenes', label: `Órdenes de Compra`, showBadge: false },
     ];
 
     const filteredData = inventoryData.filter(item => {
@@ -149,6 +151,11 @@ export const InventarioPage = () => {
                             </Button>
                     </div>
                 </CardHeader>
+                {activeTab === 'Ordenes' ? (
+                    <CardContent className="p-6">
+                        <PurchaseOrdersTab />
+                    </CardContent>
+                ) : (
                 <CardContent className="p-0 overflow-x-auto">
                     <Table>
                         <TableHeader>
@@ -240,6 +247,7 @@ export const InventarioPage = () => {
                         </TableBody>
                     </Table>
                 </CardContent>
+                )}
             </Card>
 
             <ViewInventoryItemModal

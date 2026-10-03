@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { usePreviewAutoGenerateOrders, useAutoGenerateOrders } from "../hooks/usePurchaseOrders";
 import { useAuthStore } from "@/app/store/useAuthStore";
@@ -46,7 +45,7 @@ export const PreviewAutoGenerateModal = ({ isOpen, onClose }: PreviewAutoGenerat
                 </DialogHeader>
 
                 <div className="flex-1 overflow-hidden min-h-0 border rounded-md mt-4">
-                    <ScrollArea className="h-[400px]">
+                    <div className="h-[400px] overflow-y-auto overflow-x-hidden">
                         {isFetching ? (
                             <div className="flex flex-col items-center justify-center h-full p-8 text-muted-foreground">
                                 <Loader2 className="w-8 h-8 animate-spin mb-4" />
@@ -100,7 +99,7 @@ export const PreviewAutoGenerateModal = ({ isOpen, onClose }: PreviewAutoGenerat
                                 </p>
                             </div>
                         )}
-                    </ScrollArea>
+                    </div>
                 </div>
 
                 <DialogFooter className="mt-6">

@@ -56,7 +56,8 @@ export const SupplierModal = ({ isOpen, onClose, supplierToEdit }: SupplierModal
     const updateMutation = useUpdateSupplier();
 
     const { data: companiesData, isLoading: isLoadingCompanies } = useCompanies(
-        { page: 0, size: 100 }
+        { page: 0, size: 100 },
+        isSuperAdmin
     );
     const companies = companiesData?.content || [];
 

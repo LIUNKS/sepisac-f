@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+﻿import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Pencil } from 'lucide-react';
@@ -120,7 +120,7 @@ export const ProjectsPage = () => {
                             <TableRow className="border-border/50 hover:bg-transparent bg-secondary/20">
                                 <TableHead className="text-muted-foreground font-semibold px-6">Proyecto</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
-                                <TableHead className="text-muted-foreground font-semibold">Código</TableHead>
+                                <TableHead className="text-muted-foreground font-semibold">CÃ³digo</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Estado</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Fechas</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold text-right px-6">Acciones</TableHead>
@@ -149,7 +149,7 @@ export const ProjectsPage = () => {
                                 <TableRow key={project.id} className="border-border/50 hover:bg-muted/50">
                                     <TableCell className="px-6 py-4">
                                         <div className="font-semibold text-foreground">{project.title}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">{project.description || 'Sin descripción'}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">{project.description || 'Sin descripciÃ³n'}</div>
                                     </TableCell>
                                     <TableCell className="text-foreground font-medium">{project.clientName}</TableCell>
                                     <TableCell className="text-muted-foreground">{project.code}</TableCell>
@@ -225,3 +225,4 @@ export const ProjectsPage = () => {
         </div>
     );
 };
+

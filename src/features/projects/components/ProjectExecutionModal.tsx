@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,7 +26,7 @@ interface ProjectExecutionModalProps {
 
 export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecutionModalProps) => {
     const [activeTab, setActiveTab] = useState('personal');
-    const queryClient = useQueryClient();
+    // const queryClient = useQueryClient();
 
     // Data queries
     const { data: employees, isLoading: loadingEmp } = useQuery({
@@ -54,7 +54,7 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
             <DialogContent className="max-w-4xl bg-card border-border shadow-lg">
                 <DialogHeader className="border-b border-border pb-4">
                     <DialogTitle className="text-xl font-bold">
-                        Gestión de Recursos: {project.title}
+                        GestiÃ³n de Recursos: {project.title}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -76,7 +76,7 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-semibold">Personal Asignado</h3>
                             {/* Dummy button that would open a real assignment form */}
-                            <Button size="sm" onClick={() => toast.info('Función de asignación en desarrollo')}>
+                            <Button size="sm" onClick={() => toast.info('FunciÃ³n de asignaciÃ³n en desarrollo')}>
                                 <Plus className="w-4 h-4 mr-2" /> Asignar Empleado
                             </Button>
                         </div>
@@ -108,7 +108,7 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
                     <TabsContent value="maquinaria" className="space-y-4">
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-semibold">Maquinaria Asignada</h3>
-                            <Button size="sm" onClick={() => toast.info('Función de asignación en desarrollo')}>
+                            <Button size="sm" onClick={() => toast.info('FunciÃ³n de asignaciÃ³n en desarrollo')}>
                                 <Plus className="w-4 h-4 mr-2" /> Asignar Equipo
                             </Button>
                         </div>
@@ -140,7 +140,7 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
                     <TabsContent value="inventario" className="space-y-4">
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-semibold">Consumo de Materiales</h3>
-                            <Button size="sm" onClick={() => toast.info('Función de consumo en desarrollo')}>
+                            <Button size="sm" onClick={() => toast.info('FunciÃ³n de consumo en desarrollo')}>
                                 <Plus className="w-4 h-4 mr-2" /> Registrar Consumo
                             </Button>
                         </div>
@@ -172,3 +172,4 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
         </Dialog>
     );
 };
+

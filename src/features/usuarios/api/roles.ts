@@ -5,7 +5,7 @@ import type { RoleResponseDTO } from '../types';
 
 export interface RoleCreateDTO {
     name: string;
-    description: string;
+    description?: string;
 }
 
 export const roleKeys = {

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -62,8 +62,8 @@ export const EmployeeFormModal = ({ isOpen, onClose, employeeToEdit }: EmployeeF
         },
     });
 
-    // Obtain the companyId to use for fetching users
-    const selectedCompanyId = isSuperAdmin ? (isEditing ? employeeToEdit?.companyId : form.watch('companyId')) : user?.companyId;
+    const watchedCompanyId = useWatch({ control: form.control, name: 'companyId' });
+    const selectedCompanyId = isSuperAdmin ? (isEditing ? employeeToEdit?.companyId : watchedCompanyId) : user?.companyId;
 
     const { data: companiesData, isLoading: isLoadingCompanies } = useCompanies(
         { page: 0, size: 100, search: '', sort: 'businessName,asc' },
@@ -280,7 +280,7 @@ export const EmployeeFormModal = ({ isOpen, onClose, employeeToEdit }: EmployeeF
                             <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={isPending || (!isEditing && isSuperAdmin && !form.watch('companyId'))}>
+                            <Button type="submit" disabled={isPending || (!isEditing && isSuperAdmin && !watchedCompanyId)}>
                                 {isPending ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

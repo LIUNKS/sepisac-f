@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,8 +34,8 @@ import type { Quotation } from '../types';
 import { updateQuotation } from '../services/quotation.service';
 
 const formSchema = z.object({
-    clientName: z.string().min(1, 'El nombre del cliente es obligatorio').max(150, 'MÃ¡ximo 150 caracteres'),
-    serviceType: z.string().min(1, 'El tipo de servicio es obligatorio').max(50, 'MÃ¡ximo 50 caracteres'),
+    clientName: z.string().min(1, 'El nombre del cliente es obligatorio').max(150, 'Máximo 150 caracteres'),
+    serviceType: z.string().min(1, 'El tipo de servicio es obligatorio').max(50, 'Máximo 50 caracteres'),
     currency: z.enum(['PEN', 'USD'], {
         required_error: 'La moneda es obligatoria'
     }),
@@ -84,11 +84,11 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['quotations'] });
-            toast.success('CotizaciÃ³n actualizada exitosamente');
+            toast.success('Cotización actualizada exitosamente');
             onClose();
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'Error al actualizar la cotizaciÃ³n');
+            toast.error(error.response?.data?.message || 'Error al actualizar la cotización');
         },
     });
 
@@ -113,7 +113,7 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Editar CotizaciÃ³n</DialogTitle>
+                    <DialogTitle>Editar Cotización</DialogTitle>
                 </DialogHeader>
 
                 <Form {...form}>
@@ -162,7 +162,7 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
                                             </FormControl>
                                             <SelectContent>
                                                 <SelectItem value="PEN">Soles (PEN)</SelectItem>
-                                                <SelectItem value="USD">DÃ³lares (USD)</SelectItem>
+                                                <SelectItem value="USD">Dólares (USD)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

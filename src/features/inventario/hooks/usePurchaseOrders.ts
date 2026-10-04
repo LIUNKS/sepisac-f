@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getPurchaseOrders, createPurchaseOrder, cancelPurchaseOrder, autoGenerateOrders, receivePurchaseOrder } from '../services/purchase-order.service';
+import { getPurchaseOrders, createPurchaseOrder, cancelPurchaseOrder, autoGenerateOrders, previewAutoGenerateOrders, receivePurchaseOrder } from '../services/purchase-order.service';
 import { toast } from 'sonner';
 
 export const purchaseOrderKeys = {

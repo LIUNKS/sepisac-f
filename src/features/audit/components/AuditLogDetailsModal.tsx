@@ -1,4 +1,4 @@
-﻿import {
+import {
     Dialog,
     DialogContent,
     DialogHeader,
@@ -25,7 +25,7 @@ export const AuditLogDetailsModal = ({ isOpen, onClose, log }: AuditLogDetailsMo
                 <DialogHeader>
                     <DialogTitle>Detalle de Auditoría</DialogTitle>
                     <DialogDescription>
-                        Registro de la acciÃ³n realizada el {format(new Date(log.createdAt), "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })}
+                        Registro de la acción realizada el {format(new Date(log.createdAt), "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -49,7 +49,7 @@ export const AuditLogDetailsModal = ({ isOpen, onClose, log }: AuditLogDetailsMo
                 </div>
                 
                 <div className="mt-4">
-                    <p className="text-sm font-medium text-muted-foreground mb-1">DescripciÃ³n</p>
+                    <p className="text-sm font-medium text-muted-foreground mb-1">Descripción</p>
                     <p className="text-sm bg-muted/50 p-2 rounded-md">{log.description}</p>
                 </div>
 

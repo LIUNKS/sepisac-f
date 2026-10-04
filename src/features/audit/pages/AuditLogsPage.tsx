@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useAuditLogs } from '../api';
 import { AuditLogsTable, AuditLogDetailsModal } from '../components';
 import type { AuditLogResponseDTO, AuditLogFilterDTO } from '../types';
@@ -158,7 +158,7 @@ export const AuditLogsPage = () => {
                     {logsPage && logsPage.totalPages > 1 && (
                         <div className="flex justify-between items-center p-4 border-t bg-muted/10">
                             <span className="text-sm text-muted-foreground">
-                                Mostrando pÃƒÂ¡gina {logsPage.pageNumber + 1} de {logsPage.totalPages}
+                                Mostrando página {logsPage.pageNumber + 1} de {logsPage.totalPages}
                             </span>
                             <div className="flex gap-2">
                                 <Button

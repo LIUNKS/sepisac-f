@@ -22,7 +22,7 @@ interface UserFormModalProps {
 
 export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFormModalProps) => {
     const isEditing = !!userToEdit;
-    const { user, hasRole } = useAuthStore();
+    const { hasRole } = useAuthStore();
     const isSuperAdmin = hasRole(['SUPERADMIN']);
     const { data: rolesData } = useRoles();
     const ROLES = rolesData || [];

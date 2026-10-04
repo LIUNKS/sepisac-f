@@ -49,7 +49,7 @@ export const ComprasPage = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (window.confirm('Â¿EstÃ¡ seguro de eliminar este proveedor?')) {
+        if (window.confirm('¿Estás seguro de eliminar este proveedor?')) {
             deleteMutation.mutate(id);
         }
     };

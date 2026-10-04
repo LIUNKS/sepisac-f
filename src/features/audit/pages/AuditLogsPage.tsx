@@ -66,7 +66,7 @@ export const AuditLogsPage = () => {
                     <div className="flex flex-col md:flex-row gap-4 flex-wrap items-end">
                         {isSuperAdmin && (
                             <div className="space-y-1 w-full md:w-auto">
-                                <span className="text-xs font-medium text-muted-foreground">Empresa (Tenant)</span>
+                                <span className="text-xs font-medium text-muted-foreground">Empresa</span>
                                 <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                                     <SelectTrigger className="w-full md:w-[200px]">
                                         <SelectValue placeholder="Seleccionar empresa..." />
@@ -84,29 +84,29 @@ export const AuditLogsPage = () => {
                         )}
 
                         <div className="space-y-1 w-full md:w-auto">
-                            <span className="text-xs font-medium text-muted-foreground">MÃ³dulo Afectado</span>
+                            <span className="text-xs font-medium text-muted-foreground">Módulo Afectado</span>
                             <Select value={moduleFilter} onValueChange={(v) => { setModuleFilter(v); setPage(0); }}>
                                 <SelectTrigger className="w-full md:w-[160px]">
-                                    <SelectValue placeholder="MÃ³dulo" />
+                                    <SelectValue placeholder="Módulo" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">Todos los mÃ³dulos</SelectItem>
+                                    <SelectItem value="all">Todos los módulos</SelectItem>
                                     <SelectItem value="QUOTATIONS">Cotizaciones</SelectItem>
                                     <SelectItem value="PROJECTS">Proyectos</SelectItem>
                                     <SelectItem value="INVENTORY">Inventario</SelectItem>
                                     <SelectItem value="MACHINERY">Maquinaria</SelectItem>
                                     <SelectItem value="USERS">Usuarios</SelectItem>
                                     <SelectItem value="SUPPLIERS">Proveedores</SelectItem>
-                                    <SelectItem value="INVOICES">FacturaciÃƒÂ³n</SelectItem>
+                                    <SelectItem value="INVOICES">Facturación</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="space-y-1 w-full md:w-auto">
-                            <span className="text-xs font-medium text-muted-foreground">AcciÃ³n</span>
+                            <span className="text-xs font-medium text-muted-foreground">Acción</span>
                             <Select value={actionFilter} onValueChange={(v) => { setActionFilter(v); setPage(0); }}>
                                 <SelectTrigger className="w-full md:w-[150px]">
-                                    <SelectValue placeholder="AcciÃ³n" />
+                                    <SelectValue placeholder="Acción" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">Todas las acciones</SelectItem>
@@ -144,7 +144,7 @@ export const AuditLogsPage = () => {
                 <CardContent className="p-0">
                     {!isEnabled ? (
                         <div className="flex justify-center items-center h-48 border-t bg-card">
-                            <span className="text-muted-foreground">Seleccione una empresa para visualizar los logs de auditorÃ­a.</span>
+                            <span className="text-muted-foreground">Seleccione una empresa para visualizar los logs de auditoría.</span>
                         </div>
                     ) : (
                         <AuditLogsTable

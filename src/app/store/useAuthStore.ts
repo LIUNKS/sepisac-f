@@ -25,6 +25,7 @@ export const useAuthStore = create<AuthState>()(
                     fullName: data.fullName,
                     role: data.role,
                     companyId: data.companyId,
+                    twoFactorEnabled: data.twoFactorEnabled,
                 };
                 set({
                     user,

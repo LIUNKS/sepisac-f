@@ -57,3 +57,19 @@ export const updateProjectStatus = async (id: string, status: string): Promise<P
     const response = await apiClient.put(`/projects/${id}/status`, { status });
     return response.data;
 };
+
+
+export const getEmployeeAssignments = async (id: string): Promise<any[]> => {
+    const response = await apiClient.get(`/projects/${id}/assignments`);
+    return response.data;
+};
+
+export const getMachineryAssignments = async (id: string): Promise<any[]> => {
+    const response = await apiClient.get(`/projects/${id}/machinery-assignments`);
+    return response.data;
+};
+
+export const getInventoryConsumptions = async (id: string): Promise<any[]> => {
+    const response = await apiClient.get(`/projects/${id}/inventory-consumptions`);
+    return response.data;
+};

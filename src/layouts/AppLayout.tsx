@@ -1,7 +1,9 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/app/store/useAuthStore';
+import { useToggle2FaMutation } from '@/features/auth/hooks/useLoginMutation';
 import { useMeQuery } from '@/features/auth/hooks/useMeQuery';
 import { Button } from '@/components/ui/button';
+import { ShieldCheck, ShieldAlert } from 'lucide-react';
 import { 
     LayoutGrid, 
     Briefcase, 
@@ -37,6 +39,7 @@ const NAVIGATION = [
 
 export const AppLayout = () => {
     const { user, logout } = useAuthStore();
+    const { mutate: toggle2Fa, isPending: isToggling } = useToggle2FaMutation();
     const location = useLocation();
     
     // Call the /me endpoint to keep data fresh (e.g. fullName)
@@ -129,6 +132,14 @@ export const AppLayout = () => {
                             </span>
                         </div>
                     </div>
+                    <button 
+                        onClick={() => toggle2Fa()} 
+                        disabled={isToggling}
+                        className={`transition-colors shrink-0 ml-2 ${user?.twoFactorEnabled ? 'text-emerald-500 hover:text-emerald-600' : 'text-slate-400 hover:text-amber-500'}`}
+                        title={user?.twoFactorEnabled ? 'Desactivar 2FA' : 'Activar 2FA'}
+                    >
+                        {user?.twoFactorEnabled ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
+                    </button>
                     <button 
                         onClick={logout} 
                         className="text-muted-foreground hover:text-destructive transition-colors shrink-0 ml-2"

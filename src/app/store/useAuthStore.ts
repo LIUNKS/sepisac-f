@@ -9,6 +9,7 @@ interface AuthState {
     isAuthenticated: boolean;
     setAuth: (data: AuthResponseDTO) => void;
     logout: () => void;
+    updateUser: (data: Partial<AuthUser>) => void;
     hasRole: (allowedRoles: string[]) => boolean;
 }
 
@@ -31,6 +32,7 @@ export const useAuthStore = create<AuthState>()(
                 });
             },
             logout: () => set({ user: null, isAuthenticated: false }),
+            updateUser: (data) => set((state) => ({ user: state.user ? { ...state.user, ...data } : null })),
             hasRole: (allowedRoles: string[]) => {
                 const user = get().user;
                 if (!user || !user.role) return false;
@@ -50,4 +52,4 @@ export const useAuthStore = create<AuthState>()(
             storage: createJSONStorage(() => localStorage),
         }
     )
-);
+);

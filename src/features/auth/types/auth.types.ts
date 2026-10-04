@@ -9,6 +9,8 @@ export interface AuthResponseDTO {
     fullName: string;
     role: string;
     companyId: string;
+    twoFactorRequired?: boolean;
+    twoFactorEnabled?: boolean;
 }
 
 export interface AuthUser {
@@ -17,4 +19,6 @@ export interface AuthUser {
     fullName: string;
     role: string;
     companyId: string;
-}
+    twoFactorRequired?: boolean;
+    twoFactorEnabled?: boolean;
+}

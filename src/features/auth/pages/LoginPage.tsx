@@ -157,7 +157,7 @@ export const LoginPage = () => {
                 ) : (
                     <form onSubmit={handleVerify2Fa} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                         <div className="space-y-2">
-                            <FormLabel className="text-slate-700 font-semibold text-center block">Código 2FA</FormLabel>
+                            <label className="text-slate-700 font-semibold text-center block">Código 2FA</label>
                             <Input
                                 placeholder="123456"
                                 type="text"

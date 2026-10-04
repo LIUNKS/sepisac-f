@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+﻿import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './guards/ProtectedRoute';
 import { RoleGuard } from './guards/RoleGuard';
 import { AuthLayout } from '@/layouts/AuthLayout';
@@ -11,6 +11,7 @@ import { CotizacionesPage } from '@/features/cotizaciones/pages/CotizacionesPage
 import { InventarioPage } from '@/features/inventario/pages/InventarioPage';
 import { EmpleadosPage } from '@/features/empleados/pages/EmpleadosPage';
 import { MaquinariaPage } from '@/features/maquinaria/pages/MaquinariaPage';
+import { FacturacionPage } from '@/features/facturacion/pages/FacturacionPage';
 import { UsuariosPage } from '@/features/usuarios/pages/UsuariosPage';
 import { EmpresasPage } from '@/features/empresas/pages/EmpresasPage';
 import { ReportesPage } from '@/features/reportes/pages/ReportesPage';
@@ -32,6 +33,7 @@ export const AppRoutes = () => {
                     <Route path="/inventario" element={<InventarioPage />} />
                     <Route path="/maquinaria" element={<MaquinariaPage />} />
                     <Route path="/compras" element={<ComprasPage />} />
+                    <Route path="/facturacion" element={<FacturacionPage />} />
                     <Route path="/empleados" element={<EmpleadosPage />} />
                     <Route path="/usuarios" element={<UsuariosPage />} />
                     <Route path="/empresas" element={<EmpresasPage />} />
@@ -56,4 +58,7 @@ export const AppRoutes = () => {
         </Routes>
     );
 };
+
+
+
 

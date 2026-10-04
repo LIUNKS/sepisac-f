@@ -41,12 +41,6 @@ export const FacturacionPage = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">FacturaciÃ³n y Cobranzas</h2>
-                    <p className="text-muted-foreground">GestiÃ³n de facturas emitidas y registro de pagos</p>
-                </div>
-            </div>
 
             <div className="border-b border-border/50 pb-px">
                 <button className="relative px-4 py-2.5 text-sm font-semibold transition-colors flex items-center gap-2 text-primary">
@@ -78,16 +72,16 @@ export const FacturacionPage = () => {
                             <div className="flex items-center gap-2 w-full sm:w-auto">
                                 <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">Estado:</span>
                                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Seleccionar estado" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="PENDIENTE">Pendientes</SelectItem>
-                                    <SelectItem value="PARCIAL">Pago Parcial</SelectItem>
-                                    <SelectItem value="VENCIDA">Vencidas</SelectItem>
-                                    <SelectItem value="PAGADA">Pagadas</SelectItem>
-                                    <SelectItem value="ANULADA">Anuladas</SelectItem>
-                                </SelectContent>
+                                    <SelectTrigger className="w-[180px]">
+                                        <SelectValue placeholder="Seleccionar estado" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="PENDIENTE">Pendientes</SelectItem>
+                                        <SelectItem value="PARCIAL">Pago Parcial</SelectItem>
+                                        <SelectItem value="VENCIDA">Vencidas</SelectItem>
+                                        <SelectItem value="PAGADA">Pagadas</SelectItem>
+                                        <SelectItem value="ANULADA">Anuladas</SelectItem>
+                                    </SelectContent>
                                 </Select>
                             </div>
                         </div>

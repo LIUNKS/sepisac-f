@@ -56,7 +56,7 @@ export const ComprasPage = () => {
 
     const tabs = [
         { id: 'Proveedores', label: 'Proveedores', icon: Building2 },
-        
+
     ];
 
     return (
@@ -90,14 +90,14 @@ export const ComprasPage = () => {
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div className="flex flex-col sm:flex-row gap-4 w-full flex-1">
                                 <div className="relative w-full sm:w-96">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Buscar por RUC o RazÃ³n Social..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-9 bg-background"
-                                />
-                            </div>
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Buscar por RUC o razon social"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="pl-9 bg-background"
+                                    />
+                                </div>
                                 {isSuperAdmin && (
                                     <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                                         <SelectTrigger className="w-full sm:w-[200px]">
@@ -126,10 +126,10 @@ export const ComprasPage = () => {
                                 <TableHeader className="bg-muted/30">
                                     <TableRow className="hover:bg-transparent">
                                         <TableHead className="font-semibold text-foreground/80 w-[150px]">RUC</TableHead>
-                                        <TableHead className="font-semibold text-foreground/80">RAZÃ“N SOCIAL</TableHead>
-                                        <TableHead className="font-semibold text-foreground/80">CONTACTO</TableHead>
-                                        <TableHead className="font-semibold text-foreground/80">CORREO</TableHead>
-                                        <TableHead className="text-right font-semibold text-foreground/80">ACCIONES</TableHead>
+                                        <TableHead className="font-semibold text-foreground/80">Razon Social</TableHead>
+                                        <TableHead className="font-semibold text-foreground/80">Contacto</TableHead>
+                                        <TableHead className="font-semibold text-foreground/80">Correo</TableHead>
+                                        <TableHead className="text-right font-semibold text-foreground/80">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -182,7 +182,7 @@ export const ComprasPage = () => {
 
 
 
-            <SupplierModal 
+            <SupplierModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 supplierToEdit={supplierToEdit}

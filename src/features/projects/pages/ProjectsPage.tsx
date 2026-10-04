@@ -9,6 +9,8 @@ import { useAuthStore } from '@/app/store/useAuthStore';
 import { getProjects, seedProjects } from '../services/projectService';
 import { ViewProjectModal } from '../components/ViewProjectModal';
 import { EditProjectModal } from '../components/EditProjectModal';
+import { ProjectExecutionModal } from '../components/ProjectExecutionModal';
+import { Wrench } from 'lucide-react';
 import type { Project } from '../types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { updateProjectStatus } from '../services/projectService';
@@ -20,6 +22,7 @@ export const ProjectsPage = () => {
     const [selectedProject, setSelectedProject] = useState<Project | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isExecutionModalOpen, setIsExecutionModalOpen] = useState(false);
     const { user } = useAuthStore();
 
     const { data, isLoading, isPending, error } = useQuery({
@@ -210,6 +213,14 @@ export const ProjectsPage = () => {
                 project={selectedProject} 
                 isOpen={isEditModalOpen} 
                 onClose={() => setIsEditModalOpen(false)} 
+            />
+        <ProjectExecutionModal
+                project={selectedProject}
+                isOpen={isExecutionModalOpen}
+                onClose={() => {
+                    setIsExecutionModalOpen(false);
+                    setSelectedProject(null);
+                }}
             />
         </div>
     );

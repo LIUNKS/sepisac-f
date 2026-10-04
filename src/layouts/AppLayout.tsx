@@ -28,7 +28,7 @@ const NAVIGATION = [
     { name: 'Inventario', to: '/inventario', icon: Package },
     { name: 'Empleados', to: '/empleados', icon: HardHat },
     { name: 'Maquinaria', to: '/maquinaria', icon: Truck },
-    { name: 'Compras', to: '/compras', icon: ShoppingCart },
+    { name: 'Proveedores', to: '/compras', icon: ShoppingCart },
     { name: 'Facturación', to: '/facturacion', icon: Receipt },
     { name: 'Usuarios', to: '/usuarios', icon: Users },
     { name: 'Empresas', to: '/empresas', icon: Building2 },

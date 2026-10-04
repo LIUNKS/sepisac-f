@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { userCreateSchema, userUpdateSchema } from '../schemas';
 import { useCreateUser, useUpdateUser } from '../api';
+import { useRoles } from '../api/roles';
 import type { UserResponseDTO } from '../types';
 
 interface UserFormModalProps {
@@ -17,16 +18,12 @@ interface UserFormModalProps {
     companyId?: string;
 }
 
-// ROLES MOCK (Idealmente vendrían de un endpoint GET /api/roles)
-const ROLES = [
-    { id: 1, name: 'Superadmin' },
-    { id: 2, name: 'Admin Empresa' },
-    { id: 3, name: 'Gerencia' },
-    { id: 4, name: 'Empleado' },
-];
+
 
 export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFormModalProps) => {
     const isEditing = !!userToEdit;
+    const { data: rolesData } = useRoles();
+    const ROLES = rolesData || [];
 
     const { mutate: createUser, isPending: isCreating } = useCreateUser();
     const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();

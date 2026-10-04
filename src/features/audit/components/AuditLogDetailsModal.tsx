@@ -23,7 +23,7 @@ export const AuditLogDetailsModal = ({ isOpen, onClose, log }: AuditLogDetailsMo
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[700px]">
                 <DialogHeader>
-                    <DialogTitle>Detalle de AuditorÃ­a</DialogTitle>
+                    <DialogTitle>Detalle de Auditoría</DialogTitle>
                     <DialogDescription>
                         Registro de la acciÃ³n realizada el {format(new Date(log.createdAt), "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })}
                     </DialogDescription>
@@ -35,11 +35,11 @@ export const AuditLogDetailsModal = ({ isOpen, onClose, log }: AuditLogDetailsMo
                         <p className="text-sm">{log.user?.fullName} ({log.user?.email})</p>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">AcciÃ³n</p>
+                        <p className="text-sm font-medium text-muted-foreground">Acción</p>
                         <p className="text-sm font-semibold">{log.action}</p>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">MÃ³dulo Afectado</p>
+                        <p className="text-sm font-medium text-muted-foreground">Módulo Afectado</p>
                         <p className="text-sm">{log.moduleAffected}</p>
                     </div>
                     <div className="space-y-1">

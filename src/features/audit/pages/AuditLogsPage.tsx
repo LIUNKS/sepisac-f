@@ -15,7 +15,7 @@ export const AuditLogsPage = () => {
     const { user, hasRole } = useAuthStore();
     const isSuperAdmin = hasRole(['SUPERADMIN']);
     const [selectedCompanyId, setSelectedCompanyId] = useState<string>('all');
-    
+
     // Filters state
     const [moduleFilter, setModuleFilter] = useState<string>('all');
     const [actionFilter, setActionFilter] = useState<string>('all');
@@ -60,12 +60,6 @@ export const AuditLogsPage = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Logs de AuditorÃ­a</h2>
-                    <p className="text-muted-foreground">Trazabilidad gerencial y registro de eventos del sistema</p>
-                </div>
-            </div>
 
             <Card className="border-border/50 shadow-sm overflow-hidden">
                 <CardHeader className="bg-muted/20 border-b border-border/50 pb-4">
@@ -103,7 +97,7 @@ export const AuditLogsPage = () => {
                                     <SelectItem value="MACHINERY">Maquinaria</SelectItem>
                                     <SelectItem value="USERS">Usuarios</SelectItem>
                                     <SelectItem value="SUPPLIERS">Proveedores</SelectItem>
-                                    <SelectItem value="INVOICES">FacturaciÃ³n</SelectItem>
+                                    <SelectItem value="INVOICES">FacturaciÃƒÂ³n</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -148,30 +142,36 @@ export const AuditLogsPage = () => {
                     </div>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <AuditLogsTable
-                        logs={logsPage?.content || []}
-                        isLoading={isLoading}
-                        onViewDetails={handleViewDetails}
-                    />
-                    
+                    {!isEnabled ? (
+                        <div className="flex justify-center items-center h-48 border-t bg-card">
+                            <span className="text-muted-foreground">Seleccione una empresa para visualizar los logs de auditorÃ­a.</span>
+                        </div>
+                    ) : (
+                        <AuditLogsTable
+                            logs={logsPage?.content || []}
+                            isLoading={isLoading}
+                            onViewDetails={handleViewDetails}
+                        />
+                    )}
+
                     {/* Pagination controls simple */}
                     {logsPage && logsPage.totalPages > 1 && (
                         <div className="flex justify-between items-center p-4 border-t bg-muted/10">
                             <span className="text-sm text-muted-foreground">
-                                Mostrando pÃ¡gina {logsPage.pageNumber + 1} de {logsPage.totalPages}
+                                Mostrando pÃƒÂ¡gina {logsPage.pageNumber + 1} de {logsPage.totalPages}
                             </span>
                             <div className="flex gap-2">
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     disabled={logsPage.pageNumber === 0}
                                     onClick={() => setPage(p => Math.max(0, p - 1))}
                                 >
                                     Anterior
                                 </Button>
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                <Button
+                                    variant="outline"
+                                    size="sm"
                                     disabled={logsPage.pageNumber >= logsPage.totalPages - 1}
                                     onClick={() => setPage(p => p + 1)}
                                 >
@@ -191,6 +191,7 @@ export const AuditLogsPage = () => {
         </div>
     );
 };
+
 
 
 

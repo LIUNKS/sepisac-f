@@ -33,10 +33,11 @@ export const getEntityAuditLogs = async (module: string, entityId: string): Prom
 };
 
 // Hooks
-export const useAuditLogs = (filters: AuditLogFilterDTO) => {
+export const useAuditLogs = (filters: AuditLogFilterDTO, enabled: boolean = true) => {
     return useQuery({
         queryKey: auditKeys.list(filters),
         queryFn: () => getAuditLogs(filters),
+        enabled,
     });
 };
 
@@ -47,6 +48,7 @@ export const useEntityAuditLogs = (module: string, entityId: string, enabled: bo
         enabled,
     });
 };
+
 
 
 

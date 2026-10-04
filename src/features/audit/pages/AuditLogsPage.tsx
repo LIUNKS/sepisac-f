@@ -43,7 +43,8 @@ export const AuditLogsPage = () => {
         sort: 'createdAt,desc'
     };
 
-    const { data: logsPage, isLoading } = useAuditLogs(filters);
+    const isEnabled = !isSuperAdmin || effectiveCompanyId !== undefined;
+    const { data: logsPage, isLoading } = useAuditLogs(filters, isEnabled);
 
     const handleViewDetails = (log: AuditLogResponseDTO) => {
         setSelectedLog(log);
@@ -74,10 +75,10 @@ export const AuditLogsPage = () => {
                                 <span className="text-xs font-medium text-muted-foreground">Empresa (Tenant)</span>
                                 <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
                                     <SelectTrigger className="w-full md:w-[200px]">
-                                        <SelectValue placeholder="Todas las empresas" />
+                                        <SelectValue placeholder="Seleccionar empresa..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Todas las empresas</SelectItem>
+                                        <SelectItem value="all">Seleccionar empresa...</SelectItem>
                                         {companiesPage?.content.map((company) => (
                                             <SelectItem key={company.id} value={company.id}>
                                                 {company.businessName}
@@ -190,4 +191,6 @@ export const AuditLogsPage = () => {
         </div>
     );
 };
+
+
 

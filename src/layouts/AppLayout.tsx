@@ -24,22 +24,22 @@ import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAVIGATION = [
-    { name: 'Dashboard', to: '/dashboard', icon: LayoutGrid },
-    { name: 'Proyectos', to: '/proyectos', icon: Briefcase },
-    { name: 'Cotizaciones', to: '/cotizaciones', icon: FileText },
-    { name: 'Inventario', to: '/inventario', icon: Package },
-    { name: 'Empleados', to: '/empleados', icon: HardHat },
-    { name: 'Maquinaria', to: '/maquinaria', icon: Truck },
-    { name: 'Proveedores', to: '/compras', icon: ShoppingCart },
-    { name: 'Facturación', to: '/facturacion', icon: Receipt },
-    { name: 'Usuarios', to: '/usuarios', icon: Users },
-    { name: 'Empresas', to: '/empresas', icon: Building2 },
-    { name: 'Reportes', to: '/reportes', icon: BarChart },
-    { name: 'Auditoría', to: '/auditoria', icon: ShieldCheck },
+    { name: 'Dashboard', to: '/dashboard', icon: LayoutGrid, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Proyectos', to: '/proyectos', icon: Briefcase, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN', 'TECNICO', 'INGENIERO', 'CONTADOR'] },
+    { name: 'Cotizaciones', to: '/cotizaciones', icon: FileText, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Inventario', to: '/inventario', icon: Package, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN'] },
+    { name: 'Empleados', to: '/empleados', icon: HardHat, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Maquinaria', to: '/maquinaria', icon: Truck, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN', 'INGENIERO', 'TECNICO'] },
+    { name: 'Proveedores', to: '/compras', icon: ShoppingCart, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN'] },
+    { name: 'Facturación', to: '/facturacion', icon: Receipt, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'CONTADOR'] },
+    { name: 'Usuarios', to: '/usuarios', icon: Users, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Empresas', to: '/empresas', icon: Building2, roles: ['SUPERADMIN'] },
+    { name: 'Reportes', to: '/reportes', icon: BarChart, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Auditoría', to: '/auditoria', icon: ShieldCheck, roles: ['SUPERADMIN'] },
 ];
 
 export const AppLayout = () => {
-    const { user, logout } = useAuthStore();
+    const { user, logout, hasRole } = useAuthStore();
     const { mutate: toggle2Fa, isPending: isToggling } = useToggle2FaMutation();
     const location = useLocation();
     
@@ -96,7 +96,7 @@ export const AppLayout = () => {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-                    {NAVIGATION.map((item) => (
+                    {NAVIGATION.filter(item => hasRole(item.roles)).map((item) => (
                         <NavLink
                             key={item.name}
                             to={item.to}

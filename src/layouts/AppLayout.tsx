@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+﻿import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { useToggle2FaMutation } from '@/features/auth/hooks/useLoginMutation';
 import { useMeQuery } from '@/features/auth/hooks/useMeQuery';
@@ -35,6 +35,7 @@ const NAVIGATION = [
     { name: 'Usuarios', to: '/usuarios', icon: Users },
     { name: 'Empresas', to: '/empresas', icon: Building2 },
     { name: 'Reportes', to: '/reportes', icon: BarChart },
+    { name: 'Auditoría', to: '/auditoria', icon: ShieldCheck },
 ];
 
 export const AppLayout = () => {
@@ -67,6 +68,8 @@ export const AppLayout = () => {
                 return { title: 'Usuarios del Sistema', subtitle: 'Administración de accesos y roles' };
             case '/empresas': 
                 return { title: 'Empresas', subtitle: 'Configuración y registro de clientes o tenants' };
+            case '/auditoria': 
+                return { title: 'Logs de Auditoría', subtitle: 'Trazabilidad y registro de eventos del sistema' };
             case '/reportes': 
                 return { title: 'Reportes y Analíticas', subtitle: 'Estadísticas e indicadores del negocio' };
             default: 

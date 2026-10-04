@@ -12,6 +12,7 @@ import { InventarioPage } from '@/features/inventario/pages/InventarioPage';
 import { EmpleadosPage } from '@/features/empleados/pages/EmpleadosPage';
 import { MaquinariaPage } from '@/features/maquinaria/pages/MaquinariaPage';
 import { FacturacionPage } from '@/features/facturacion/pages/FacturacionPage';
+import { AuditLogsPage } from '@/features/audit/pages/AuditLogsPage';
 import { UsuariosPage } from '@/features/usuarios/pages/UsuariosPage';
 import { EmpresasPage } from '@/features/empresas/pages/EmpresasPage';
 import { ReportesPage } from '@/features/reportes/pages/ReportesPage';
@@ -37,7 +38,7 @@ export const AppRoutes = () => {
                     <Route path="/empleados" element={<EmpleadosPage />} />
                     <Route path="/usuarios" element={<UsuariosPage />} />
                     <Route path="/empresas" element={<EmpresasPage />} />
-                    <Route path="/reportes" element={<ReportesPage />} />
+                    <Route path="/reportes" element={<ReportesPage />} />`r`n                      <Route path="/auditoria" element={<AuditLogsPage />} />
 
                     {/* Rutas Protegidas por Roles Específicos */}
                     <Route element={<RoleGuard allowedRoles={['ROLE_ADMIN', 'SUPERADMIN']} />}>
@@ -58,6 +59,7 @@ export const AppRoutes = () => {
         </Routes>
     );
 };
+
 
 
 

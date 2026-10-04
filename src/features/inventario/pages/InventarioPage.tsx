@@ -34,7 +34,7 @@ export const InventarioPage = () => {
             if (!user?.companyId) {
                 throw new Error("No tienes una empresa asignada para generar datos de prueba.");
             }
-            await apiClient.post(`inventory/items/seed/${user?.companyId}`);
+            await apiClient.post(`/inventory/items/seed/${user?.companyId}`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['inventory'] });

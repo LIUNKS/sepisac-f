@@ -3,6 +3,7 @@ import type { Supplier, SupplierCreateDTO, SupplierFilterDTO, PageResponse } fro
 
 export const getSuppliers = async (params: SupplierFilterDTO): Promise<PageResponse<Supplier>> => {
     const searchParams = new URLSearchParams();
+    if (params.companyId) searchParams.append('companyId', params.companyId);
     searchParams.append('page', params.page.toString());
     searchParams.append('size', params.size.toString());
     if (params.search) searchParams.append('search', params.search);

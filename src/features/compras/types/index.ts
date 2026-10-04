@@ -18,6 +18,7 @@ export interface SupplierCreateDTO {
 }
 
 export interface SupplierFilterDTO {
+    companyId?: string;
     page: number;
     size: number;
     search?: string;

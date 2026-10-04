@@ -24,7 +24,9 @@ apiClient.interceptors.response.use(
         if (status === 401 && !isAuthLoginRequest) {
             toast.error('Sesión expirada o no autorizada');
             useAuthStore.getState().logout();
-            window.location.href = '/login';
+            if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
         } else if (status === 403) {
             toast.error('Acceso denegado: No tienes permisos suficientes');
         } else if (status === 500) {

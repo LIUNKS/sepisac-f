@@ -33,7 +33,6 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
 
     useEffect(() => {
         if (item && isOpen) {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
             setFormData({
                 sku: item.sku,
                 name: item.name,
@@ -43,7 +42,6 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
                 minStockAlert: item.minStockAlert
             });
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [item, isOpen]);
 
     const mutation = useMutation({

@@ -1,4 +1,4 @@
-﻿import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Pencil } from 'lucide-react';
@@ -12,10 +12,6 @@ import { EditProjectModal } from '../components/EditProjectModal';
 import { ProjectExecutionModal } from '../components/ProjectExecutionModal';
 import { Wrench } from 'lucide-react';
 import type { Project } from '../types';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { updateProjectStatus } from '../services/projectService';
-import { toast } from 'sonner';
-
 
 export const ProjectsPage = () => {
     const [activeTab, setActiveTab] = useState('Todos');
@@ -49,18 +45,6 @@ export const ProjectsPage = () => {
         { id: 'Completados', label: `Completados (${projects.filter(p => p.status === 'COMPLETADO').length})` },
         { id: 'Pendientes', label: `Pendientes (${projects.filter(p => p.status === 'PENDIENTE').length})` },
     ];
-
-    
-    const statusMutation = useMutation({
-        mutationFn: ({ id, status }: { id: string; status: string }) => updateProjectStatus(id, status),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['projects'] });
-            toast.success('Estado del proyecto actualizado');
-        },
-        onError: () => {
-            toast.error('Error al actualizar el estado');
-        }
-    });
 
     const filteredProjects = projects.filter(p => {
         if (activeTab === 'Todos') return true;
@@ -120,7 +104,7 @@ export const ProjectsPage = () => {
                             <TableRow className="border-border/50 hover:bg-transparent bg-secondary/20">
                                 <TableHead className="text-muted-foreground font-semibold px-6">Proyecto</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Cliente</TableHead>
-                                <TableHead className="text-muted-foreground font-semibold">CÃ³digo</TableHead>
+                                <TableHead className="text-muted-foreground font-semibold">Código</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Estado</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold">Fechas</TableHead>
                                 <TableHead className="text-muted-foreground font-semibold text-right px-6">Acciones</TableHead>
@@ -149,7 +133,7 @@ export const ProjectsPage = () => {
                                 <TableRow key={project.id} className="border-border/50 hover:bg-muted/50">
                                     <TableCell className="px-6 py-4">
                                         <div className="font-semibold text-foreground">{project.title}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">{project.description || 'Sin descripciÃ³n'}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">{project.description || 'Sin descripción'}</div>
                                     </TableCell>
                                     <TableCell className="text-foreground font-medium">{project.clientName}</TableCell>
                                     <TableCell className="text-muted-foreground">{project.code}</TableCell>
@@ -193,6 +177,18 @@ export const ProjectsPage = () => {
                                                 }}
                                             >
                                                 <Pencil className="w-4 h-4" />
+                                            </Button>
+                                            <Button 
+                                                variant="outline" 
+                                                size="icon" 
+                                                className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                title="Gestionar Recursos"
+                                                onClick={() => {
+                                                    setSelectedProject(project);
+                                                    setIsExecutionModalOpen(true);
+                                                }}
+                                            >
+                                                <Wrench className="w-4 h-4" />
                                             </Button>
                                         </div>
                                     </TableCell>

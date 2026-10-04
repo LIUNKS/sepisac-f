@@ -1,4 +1,4 @@
-﻿import {
+import {
     Table,
     TableBody,
     TableCell,
@@ -63,9 +63,9 @@ export const InvoicesTable = ({ invoices, isLoading, onAddPayment, onViewPayment
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>NÂ° FACTURA</TableHead>
+                        <TableHead>N° FACTURA</TableHead>
                         <TableHead>CLIENTE / PROYECTO</TableHead>
-                        <TableHead>EMISIÃ“N</TableHead>
+                        <TableHead>EMISIÓN</TableHead>
                         <TableHead>VENCIMIENTO</TableHead>
                         <TableHead className="text-right">MONTO TOTAL</TableHead>
                         <TableHead className="text-right">SALDO</TableHead>

@@ -191,7 +191,7 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
                                         <FormItem>
                                             <FormLabel>ID de Empresa (Superadmin)</FormLabel>
                                             <FormControl>
-                                                <Input {...field} placeholder="UUID de la empresa" />
+                                                <Input {...field} value={field.value ?? ''} placeholder="UUID de la empresa" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>

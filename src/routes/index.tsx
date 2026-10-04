@@ -1,4 +1,4 @@
-﻿import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './guards/ProtectedRoute';
 import { RoleGuard } from './guards/RoleGuard';
 import { AuthLayout } from '@/layouts/AuthLayout';
@@ -38,7 +38,8 @@ export const AppRoutes = () => {
                     <Route path="/empleados" element={<EmpleadosPage />} />
                     <Route path="/usuarios" element={<UsuariosPage />} />
                     <Route path="/empresas" element={<EmpresasPage />} />
-                    <Route path="/reportes" element={<ReportesPage />} />`r`n                      <Route path="/auditoria" element={<AuditLogsPage />} />
+                    <Route path="/reportes" element={<ReportesPage />} />
+                    <Route path="/auditoria" element={<AuditLogsPage />} />
 
                     {/* Rutas Protegidas por Roles Específicos */}
                     <Route element={<RoleGuard allowedRoles={['ROLE_ADMIN', 'SUPERADMIN']} />}>

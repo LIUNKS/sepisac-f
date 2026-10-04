@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import type { ApiErrorResponse } from '@/types/api';
 
 export const apiClient = axios.create({
-    baseURL: env.VITE_API_BASE_URL.replace(/\/+$/, ''),
+    baseURL: env.VITE_API_BASE_URL,
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json',

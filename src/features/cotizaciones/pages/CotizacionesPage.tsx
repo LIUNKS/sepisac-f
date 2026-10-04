@@ -1,12 +1,14 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Pencil, Download, FileText, CheckCircle2, Clock, DownloadCloud, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+
 import { useAuthStore } from '@/app/store/useAuthStore';
-import { getQuotations, getQuotationById } from '../services/quotation.service';
+import { getQuotations, getQuotationById, updateQuotationStatus } from '../services/quotation.service';
 import { ViewQuotationModal } from '../components/ViewQuotationModal';
 import { EditQuotationModal } from '../components/EditQuotationModal';
 import { CreateQuotationModal } from '../components/CreateQuotationModal';
@@ -17,7 +19,20 @@ import { toast } from 'sonner';
 import type { Quotation } from '../types';
 
 export const CotizacionesPage = () => {
+    const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState('Todas');
+
+    const statusMutation = useMutation({
+        mutationFn: ({ id, status }: { id: string; status: string }) => updateQuotationStatus(id, status),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['quotations'] });
+            toast.success('Estado de la cotización actualizado');
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || 'Error al actualizar el estado. Revisa las reglas de negocio.');
+        }
+    });
+
     const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -57,14 +72,14 @@ export const CotizacionesPage = () => {
 
     const tabs = [
         { id: 'Todas', label: `Todas (${quotations.length})`, count: quotations.length },
-        { id: 'Pendientes', label: 'Pendientes', count: quotations.filter(q => q.status === 'PENDIENTE').length },
+        { id: 'Borradores', label: 'Borradores', count: quotations.filter(q => q.status === 'BORRADOR').length },
         { id: 'Aprobadas', label: 'Aprobadas', count: quotations.filter(q => q.status === 'APROBADA').length },
         { id: 'Rechazadas', label: 'Rechazadas', count: quotations.filter(q => q.status === 'RECHAZADA').length },
     ];
 
     const filteredQuotations = quotations.filter(q => {
         if (activeTab === 'Todas') return true;
-        if (activeTab === 'Pendientes') return q.status === 'PENDIENTE';
+        if (activeTab === 'Borradores') return q.status === 'BORRADOR';
         if (activeTab === 'Aprobadas') return q.status === 'APROBADA';
         if (activeTab === 'Rechazadas') return q.status === 'RECHAZADA';
         return true;
@@ -72,13 +87,13 @@ export const CotizacionesPage = () => {
 
     const totalIssued = quotations.length;
     const totalApproved = quotations.filter(q => q.status === 'APROBADA').length;
-    const totalPending = quotations.filter(q => q.status === 'PENDIENTE').length;
+    const totalPending = quotations.filter(q => q.status === 'BORRADOR').length;
     const conversionRate = totalIssued > 0 ? Math.round((totalApproved / totalIssued) * 100) : 0;
 
             const kpisData = [
         { title: 'Cotizaciones Emitidas', value: totalIssued.toString(), trend: 'Este mes', trendType: 'success', icon: FileText },
         { title: 'Aprobadas (Éxito)', value: totalApproved.toString(), trend: `Tasa de conversión: ${conversionRate}%`, trendType: 'success', icon: CheckCircle2 },
-        { title: 'Pendientes de Revisión', value: totalPending.toString(), trend: 'Por gestionar', trendType: 'warning', icon: Clock },
+        { title: 'Borradores de Revisión', value: totalPending.toString(), trend: 'Por gestionar', trendType: 'warning', icon: Clock },
     ];
 
     if (isLoading) {
@@ -183,25 +198,36 @@ export const CotizacionesPage = () => {
                                     <TableCell className="text-muted-foreground">{new Date(quote.createdAt).toLocaleDateString()}</TableCell>
                                     <TableCell className="font-bold text-foreground">{quote.currency} {quote.totalAmount.toFixed(2)}</TableCell>
                                     <TableCell>
-                                        <Badge 
-                                            variant="secondary" 
-                                            className={
-                                                `gap-1.5 ${
-                                                    quote.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
-                                                    quote.status === 'PENDIENTE' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20' :
-                                                    'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'
-                                                }`
-                                            }
-                                        >
-                                            <span className={
-                                                `w-1.5 h-1.5 rounded-full ${
-                                                    quote.status === 'APROBADA' ? 'bg-emerald-600 dark:bg-emerald-400' :
-                                                    quote.status === 'PENDIENTE' ? 'bg-amber-600 dark:bg-amber-400' :
-                                                    'bg-red-600 dark:bg-red-400'
-                                                }`
-                                            }></span>
-                                            {quote.status}
-                                        </Badge>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger className="focus:outline-none">
+                                                <Badge 
+                                                    variant="secondary" 
+                                                    className={
+                                                        `cursor-pointer gap-1.5 ${
+                                                            quote.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
+                                                            quote.status === 'BORRADOR' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20' :
+                                                            quote.status === 'ENVIADA' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' :
+                                                            'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'
+                                                        }`
+                                                    }
+                                                >
+                                                    <span className={
+                                                        `w-1.5 h-1.5 rounded-full ${
+                                                            quote.status === 'APROBADA' ? 'bg-emerald-600 dark:bg-emerald-400' :
+                                                            quote.status === 'BORRADOR' ? 'bg-amber-600 dark:bg-amber-400' :
+                                                            quote.status === 'ENVIADA' ? 'bg-blue-600 dark:bg-blue-400' :
+                                                            'bg-red-600 dark:bg-red-400'
+                                                        }`
+                                                    }></span>
+                                                    {quote.status}
+                                                </Badge>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'ENVIADA' })}>Marcar como ENVIADA</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'APROBADA' })}>Marcar como APROBADA</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'RECHAZADA' })}>Marcar como RECHAZADA</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TableCell>
                                     <TableCell className="px-6 text-right">
                                         <div className="flex items-center justify-end gap-2">

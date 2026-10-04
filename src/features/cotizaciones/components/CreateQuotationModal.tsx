@@ -69,7 +69,8 @@ interface CreateQuotationModalProps {
 
 export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalProps) => {
     const queryClient = useQueryClient();
-    const { user, isSuperAdmin } = useAuthStore();
+    const { user, hasRole } = useAuthStore();
+    const isSuperAdmin = hasRole(['SUPERADMIN']);
 
     const { data: inventoryData } = useQuery({
         queryKey: ['inventory', user?.companyId],

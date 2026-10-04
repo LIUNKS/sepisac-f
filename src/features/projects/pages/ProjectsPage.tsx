@@ -10,6 +10,10 @@ import { getProjects, seedProjects } from '../services/projectService';
 import { ViewProjectModal } from '../components/ViewProjectModal';
 import { EditProjectModal } from '../components/EditProjectModal';
 import type { Project } from '../types';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { updateProjectStatus } from '../services/projectService';
+import { toast } from 'sonner';
+
 
 export const ProjectsPage = () => {
     const [activeTab, setActiveTab] = useState('Todos');
@@ -42,6 +46,18 @@ export const ProjectsPage = () => {
         { id: 'Completados', label: `Completados (${projects.filter(p => p.status === 'COMPLETADO').length})` },
         { id: 'Pendientes', label: `Pendientes (${projects.filter(p => p.status === 'PENDIENTE').length})` },
     ];
+
+    
+    const statusMutation = useMutation({
+        mutationFn: ({ id, status }: { id: string; status: string }) => updateProjectStatus(id, status),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+            toast.success('Estado del proyecto actualizado');
+        },
+        onError: () => {
+            toast.error('Error al actualizar el estado');
+        }
+    });
 
     const filteredProjects = projects.filter(p => {
         if (activeTab === 'Todos') return true;

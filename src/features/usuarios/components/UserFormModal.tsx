@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { userCreateSchema, userUpdateSchema } from '../schemas';
 import { useCreateUser, useUpdateUser } from '../api';
 import { useRoles } from '../api/roles';
+import { useCompanies } from '@/features/empresas/api/empresas';
+import { useAuthStore } from '@/app/store/useAuthStore';
 import type { UserResponseDTO } from '../types';
 
 interface UserFormModalProps {
@@ -18,12 +20,15 @@ interface UserFormModalProps {
     companyId?: string;
 }
 
-
-
 export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFormModalProps) => {
     const isEditing = !!userToEdit;
+    const { user, hasRole } = useAuthStore();
+    const isSuperAdmin = hasRole(['SUPERADMIN']);
     const { data: rolesData } = useRoles();
     const ROLES = rolesData || [];
+    
+    const { data: companiesData } = useCompanies({ page: 0, size: 100 }, isSuperAdmin);
+    const COMPANIES = companiesData?.content || [];
 
     const { mutate: createUser, isPending: isCreating } = useCreateUser();
     const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
@@ -36,6 +41,7 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
             username: '',
             password: '',
             roleId: '',
+            companyId: '',
         },
     });
 
@@ -46,6 +52,7 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
                     fullName: userToEdit.fullName,
                     username: userToEdit.username || '',
                     roleId: userToEdit.roleId.toString(),
+                    companyId: userToEdit.companyId || '',
                 });
             } else {
                 form.reset({
@@ -54,6 +61,7 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
                     username: '',
                     password: '',
                     roleId: '',
+                    companyId: '',
                 });
             }
         }
@@ -67,7 +75,7 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
             );
         } else {
             const payload: any = { ...values, roleId: Number(values.roleId) };
-            if (companyId) {
+            if (!isSuperAdmin && companyId) {
                 payload.companyId = companyId;
             }
             createUser(
@@ -89,6 +97,33 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        {isSuperAdmin && (
+                            <FormField
+                                control={form.control}
+                                name="companyId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Empresa (Inquilino)</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Seleccione una empresa" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {COMPANIES.map((company: any) => (
+                                                    <SelectItem key={company.id} value={company.id}>
+                                                        {company.businessName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
+
                         <FormField
                             control={form.control}
                             name="fullName"
@@ -102,36 +137,37 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
                                 </FormItem>
                             )}
                         />
-                        
-                        {!isEditing && (
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {!isEditing && (
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Correo Electrónico</FormLabel>
+                                            <FormControl>
+                                                <Input type="email" placeholder="correo@empresa.com" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
                             <FormField
                                 control={form.control}
-                                name="email"
+                                name="username"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Correo Electrónico</FormLabel>
+                                    <FormItem className={isEditing ? "col-span-2" : ""}>
+                                        <FormLabel>Usuario (Opcional)</FormLabel>
                                         <FormControl>
-                                            <Input type="email" placeholder="correo@empresa.com" {...field} />
+                                            <Input placeholder="Ej. jperez" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                        )}
-
-                        <FormField
-                            control={form.control}
-                            name="username"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nombre de Usuario (Opcional)</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="jperez" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        </div>
 
                         {!isEditing && (
                             <FormField
@@ -141,7 +177,7 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
                                     <FormItem>
                                         <FormLabel>Contraseña</FormLabel>
                                         <FormControl>
-                                            <Input type="password" placeholder="********" {...field} />
+                                            <Input type="password" placeholder="******" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -154,17 +190,17 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
                             name="roleId"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Rol</FormLabel>
-                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                    <FormLabel>Rol en el Sistema</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Seleccione un rol" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {ROLES.map((role) => (
+                                            {ROLES.map((role: any) => (
                                                 <SelectItem key={role.id} value={role.id.toString()}>
-                                                    {role.name}
+                                                    {role.name.replace('ROLE_', '')}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -174,10 +210,12 @@ export const UserFormModal = ({ isOpen, onClose, userToEdit, companyId }: UserFo
                             )}
                         />
 
-                        <div className="flex justify-end space-x-2 pt-4">
-                            <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+                        <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                            <Button type="button" variant="outline" onClick={onClose}>
+                                Cancelar
+                            </Button>
                             <Button type="submit" disabled={isCreating || isUpdating}>
-                                {isCreating || isUpdating ? 'Guardando...' : 'Guardar'}
+                                {isEditing ? 'Guardar Cambios' : 'Crear Usuario'}
                             </Button>
                         </div>
                     </form>

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getPurchaseOrders, createPurchaseOrder, cancelPurchaseOrder, autoGenerateOrders } from '../services/purchase-order.service';
+import { getPurchaseOrders, createPurchaseOrder, cancelPurchaseOrder, autoGenerateOrders, receivePurchaseOrder } from '../services/purchase-order.service';
 import { toast } from 'sonner';
 
 export const purchaseOrderKeys = {
@@ -65,5 +65,20 @@ export const usePreviewAutoGenerateOrders = (companyId?: string) => {
         queryKey: [...purchaseOrderKeys.all, 'preview', companyId],
         queryFn: () => previewAutoGenerateOrders(companyId),
         enabled: false, // Solo se ejecuta al hacer click
+    });
+};
+export const useReceivePurchaseOrder = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: receivePurchaseOrder,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: purchaseOrderKeys.all });
+            // Also invalidate inventory items because stock changed
+            queryClient.invalidateQueries({ queryKey: ['inventory'] });
+            toast.success('Orden de compra recibida. Inventario actualizado.');
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || 'Error al recibir la orden de compra');
+        }
     });
 };

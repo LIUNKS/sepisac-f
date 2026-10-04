@@ -3,8 +3,8 @@ import { PreviewAutoGenerateModal } from './PreviewAutoGenerateModal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Settings, Ban, FileText } from 'lucide-react';
-import { usePurchaseOrders, useCancelPurchaseOrder } from '../hooks/usePurchaseOrders';
+import { Loader2, Settings, Ban, FileText, CheckCircle2 } from 'lucide-react';
+import { usePurchaseOrders, useCancelPurchaseOrder, useReceivePurchaseOrder } from '../hooks/usePurchaseOrders';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 
@@ -13,12 +13,20 @@ export const PurchaseOrdersTab = () => {
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const { data, isLoading } = usePurchaseOrders({ page, size: 20, sort: 'createdAt,desc' });
     const cancelMutation = useCancelPurchaseOrder();
+    const receiveMutation = useReceivePurchaseOrder();
 
     const orders = data?.content || [];
 
     const handleCancel = (id: string) => {
         if (window.confirm('¿Está seguro de cancelar esta orden de compra?')) {
             cancelMutation.mutate(id);
+        }
+    };
+
+    
+    const handleReceive = (id: string) => {
+        if (window.confirm('¿Está seguro de recibir los materiales de esta orden? Esto actualizará el stock e ingresará los movimientos.')) {
+            receiveMutation.mutate(id);
         }
     };
 
@@ -96,9 +104,14 @@ export const PurchaseOrdersTab = () => {
                                     </TableCell>
                                     <TableCell className="text-right">
                                         {order.status === 'PENDIENTE' && (
-                                            <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => handleCancel(order.id)}>
-                                                <Ban className="w-4 h-4 mr-2" /> Cancelar
-                                            </Button>
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => handleReceive(order.id)} disabled={receiveMutation.isPending}>
+                                                    <CheckCircle2 className="w-4 h-4 mr-2" /> Recibir
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => handleCancel(order.id)} disabled={cancelMutation.isPending}>
+                                                    <Ban className="w-4 h-4 mr-2" /> Cancelar
+                                                </Button>
+                                            </div>
                                         )}
                                     </TableCell>
                                 </TableRow>

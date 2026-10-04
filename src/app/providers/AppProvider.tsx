@@ -9,14 +9,18 @@ interface AppProviderProps {
     children: React.ReactNode;
 }
 
+import { ThemeProvider } from '@/components/theme-provider';
+
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     return (
-        <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="light" storageKey="sepisac-theme">
+            <QueryClientProvider client={queryClient}>
             <BrowserRouter>
                 {children}
                 <Toaster position="top-right" richColors />
             </BrowserRouter>
             <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
+        </ThemeProvider>
     );
 };

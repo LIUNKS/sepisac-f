@@ -1,10 +1,21 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+﻿import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './guards/ProtectedRoute';
 import { RoleGuard } from './guards/RoleGuard';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { AppLayout } from '@/layouts/AppLayout';
 import { LoginPage } from '@/features/auth';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
+import { ComprasPage } from '@/features/compras/pages/ComprasPage';
+import { ProjectsPage } from '@/features/projects/pages/ProjectsPage';
+import { CotizacionesPage } from '@/features/cotizaciones/pages/CotizacionesPage';
+import { InventarioPage } from '@/features/inventario/pages/InventarioPage';
+import { EmpleadosPage } from '@/features/empleados/pages/EmpleadosPage';
+import { MaquinariaPage } from '@/features/maquinaria/pages/MaquinariaPage';
+import { FacturacionPage } from '@/features/facturacion/pages/FacturacionPage';
+import { AuditLogsPage } from '@/features/audit/pages/AuditLogsPage';
+import { UsuariosPage } from '@/features/usuarios/pages/UsuariosPage';
+import { EmpresasPage } from '@/features/empresas/pages/EmpresasPage';
+import { ReportesPage } from '@/features/reportes/pages/ReportesPage';
 
 export const AppRoutes = () => {
     return (
@@ -18,6 +29,16 @@ export const AppRoutes = () => {
             <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
                     <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/proyectos" element={<ProjectsPage />} />
+                    <Route path="/cotizaciones" element={<CotizacionesPage />} />
+                    <Route path="/inventario" element={<InventarioPage />} />
+                    <Route path="/maquinaria" element={<MaquinariaPage />} />
+                    <Route path="/compras" element={<ComprasPage />} />
+                    <Route path="/facturacion" element={<FacturacionPage />} />
+                    <Route path="/empleados" element={<EmpleadosPage />} />
+                    <Route path="/usuarios" element={<UsuariosPage />} />
+                    <Route path="/empresas" element={<EmpresasPage />} />
+                    <Route path="/reportes" element={<ReportesPage />} />`r`n                      <Route path="/auditoria" element={<AuditLogsPage />} />
 
                     {/* Rutas Protegidas por Roles Específicos */}
                     <Route element={<RoleGuard allowedRoles={['ROLE_ADMIN', 'SUPERADMIN']} />}>
@@ -38,4 +59,8 @@ export const AppRoutes = () => {
         </Routes>
     );
 };
+
+
+
+
 

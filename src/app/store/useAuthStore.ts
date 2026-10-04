@@ -5,34 +5,35 @@ import type { AuthResponseDTO, AuthUser } from '@/features/auth/types/auth.types
 export type { AuthUser };
 
 interface AuthState {
-    token: string | null;
     user: AuthUser | null;
     isAuthenticated: boolean;
     setAuth: (data: AuthResponseDTO) => void;
     logout: () => void;
+    updateUser: (data: Partial<AuthUser>) => void;
     hasRole: (allowedRoles: string[]) => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
     persist(
         (set, get) => ({
-            token: null,
             user: null,
             isAuthenticated: false,
             setAuth: (data: AuthResponseDTO) => {
                 const user: AuthUser = {
                     email: data.email,
                     username: data.username,
+                    fullName: data.fullName,
                     role: data.role,
                     companyId: data.companyId,
+                    twoFactorEnabled: data.twoFactorEnabled,
                 };
                 set({
-                    token: data.token,
                     user,
                     isAuthenticated: true,
                 });
             },
-            logout: () => set({ token: null, user: null, isAuthenticated: false }),
+            logout: () => set({ user: null, isAuthenticated: false }),
+            updateUser: (data) => set((state) => ({ user: state.user ? { ...state.user, ...data } : null })),
             hasRole: (allowedRoles: string[]) => {
                 const user = get().user;
                 if (!user || !user.role) return false;
@@ -41,8 +42,8 @@ export const useAuthStore = create<AuthState>()(
                     const normalizedAllowed = role.toUpperCase();
                     return (
                         normalizedRole === normalizedAllowed ||
-                        normalizedRole === normalizedAllowed.replace(/^ROLE_/, '') ||
-                        `ROLE_${normalizedRole}` === normalizedAllowed
+                        normalizedRole.replace(/^ROLE_/, '') === normalizedAllowed ||
+                        normalizedRole === `ROLE_${normalizedAllowed}`
                     );
                 });
             },
@@ -52,4 +53,4 @@ export const useAuthStore = create<AuthState>()(
             storage: createJSONStorage(() => localStorage),
         }
     )
-);
+);

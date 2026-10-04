@@ -12,6 +12,8 @@ import { Mail, Lock, Eye, EyeOff, Loader2, KeyRound, ArrowLeft } from 'lucide-re
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { MagicCard } from '@/components/magicui/magic-card';
+import { useTheme } from '@/components/theme-provider';
 
 export const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -24,6 +26,8 @@ export const LoginPage = () => {
 
     const setAuth = useAuthStore((state) => state.setAuth);
     const navigate = useNavigate();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
     const form = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
@@ -66,17 +70,21 @@ export const LoginPage = () => {
     };
 
     return (
-        <Card className="shadow-xl border-slate-200/80 bg-white/95 backdrop-blur-sm relative overflow-hidden">
-            <CardHeader className="space-y-2 text-center pb-6">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-1">
-                    {step === 'LOGIN' ? <Lock className="w-6 h-6" /> : <KeyRound className="w-6 h-6" />}
-                </div>
-                <CardTitle className="text-2xl font-extrabold tracking-tight text-slate-900">
+        <Card className="w-full max-w-sm mx-auto border-none p-0 shadow-none bg-transparent">
+            <MagicCard
+                gradientColor={isDark ? "#262626" : "#D9D9D955"}
+                className="p-0 border-slate-200/80 bg-white/95 backdrop-blur-sm dark:bg-zinc-950/95 dark:border-zinc-800/80"
+            >
+                <CardHeader className="space-y-2 text-center pb-6">
+                    <div className="mx-auto w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-1">
+                        {step === 'LOGIN' ? <Lock className="w-6 h-6" /> : <KeyRound className="w-6 h-6" />}
+                    </div>
+                <CardTitle className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
                     SEPISAC
                 </CardTitle>
                 {step === '2FA' && (
-                    <p className="text-sm text-slate-500 mt-2">
-                        Ingrese el código enviado a <br/><span className="font-medium text-slate-700">{pendingEmail}</span>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                        Ingrese el código enviado a <br/><span className="font-medium text-slate-700 dark:text-slate-300">{pendingEmail}</span>
                     </p>
                 )}
             </CardHeader>
@@ -89,15 +97,15 @@ export const LoginPage = () => {
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-slate-700 font-semibold">Correo Electrónico</FormLabel>
+                                        <FormLabel className="text-slate-700 dark:text-slate-300 font-semibold">Correo Electrónico</FormLabel>
                                         <FormControl>
                                             <div className="relative">
-                                                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                                                 <Input
                                                     placeholder="usuario@empresa.com"
                                                     type="email"
                                                     autoComplete="email"
-                                                    className="pl-9"
+                                                    className="pl-9 dark:bg-zinc-900/50"
                                                     {...field}
                                                 />
                                             </div>
@@ -112,21 +120,21 @@ export const LoginPage = () => {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-slate-700 font-semibold">Contraseña</FormLabel>
+                                        <FormLabel className="text-slate-700 dark:text-slate-300 font-semibold">Contraseña</FormLabel>
                                         <FormControl>
                                             <div className="relative">
-                                                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                                                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-slate-400 dark:text-slate-500" />
                                                 <Input
                                                     placeholder="••••••••"
                                                     type={showPassword ? 'text' : 'password'}
                                                     autoComplete="current-password"
-                                                    className="pl-9 pr-10"
+                                                    className="pl-9 pr-10 dark:bg-zinc-900/50"
                                                     {...field}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword((prev) => !prev)}
-                                                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                                                    className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 focus:outline-none"
                                                     tabIndex={-1}
                                                 >
                                                     {showPassword ? (
@@ -157,14 +165,14 @@ export const LoginPage = () => {
                 ) : (
                     <form onSubmit={handleVerify2Fa} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                         <div className="space-y-2">
-                            <label className="text-slate-700 font-semibold text-center block">Código 2FA</label>
+                            <label className="text-slate-700 dark:text-slate-300 font-semibold text-center block">Código 2FA</label>
                             <Input
                                 placeholder="123456"
                                 type="text"
                                 maxLength={6}
                                 value={code2fa}
                                 onChange={(e) => setCode2fa(e.target.value.replace(/[^0-9]/g, ''))}
-                                className="text-center text-2xl tracking-widest h-14"
+                                className="text-center text-2xl tracking-widest h-14 dark:bg-zinc-900/50"
                                 autoFocus
                             />
                         </div>
@@ -183,7 +191,7 @@ export const LoginPage = () => {
                         <Button 
                             type="button" 
                             variant="ghost" 
-                            className="w-full text-slate-500 hover:text-slate-700" 
+                            className="w-full text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200" 
                             onClick={() => {
                                 setStep('LOGIN');
                                 setCode2fa('');
@@ -196,6 +204,7 @@ export const LoginPage = () => {
                     </form>
                 )}
             </CardContent>
+            </MagicCard>
         </Card>
     );
 };

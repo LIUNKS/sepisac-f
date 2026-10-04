@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+﻿import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Building2, Pencil, Search, Plus, Trash2, Loader2 } from 'lucide-react';
@@ -7,8 +7,14 @@ import { Input } from '@/components/ui/input';
 import { useSuppliers, useDeleteSupplier } from '../hooks/useSuppliers';
 import { SupplierModal } from '../components/SupplierModal';
 import type { Supplier } from '../types';
+import { useAuthStore } from '@/app/store/useAuthStore';
+import { useCompanies } from '@/features/empresas/api';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export const ComprasPage = () => {
+    const { user, hasRole } = useAuthStore();
+    const isSuperAdmin = hasRole(['SUPERADMIN']);
+    const [selectedCompanyId, setSelectedCompanyId] = useState<string>('all');
     const [activeTab, setActiveTab] = useState('Proveedores');
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -16,7 +22,14 @@ export const ComprasPage = () => {
 
     const deleteMutation = useDeleteSupplier();
 
+    const { data: companiesPage } = useCompanies({ page: 0, size: 100 }, isSuperAdmin);
+
+    const effectiveCompanyId = isSuperAdmin
+        ? (selectedCompanyId !== 'all' ? selectedCompanyId : undefined)
+        : user?.companyId;
+
     const { data, isLoading } = useSuppliers({
+        companyId: effectiveCompanyId,
         page: 0,
         size: 100,
         search: searchTerm,
@@ -36,7 +49,7 @@ export const ComprasPage = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (window.confirm('¿Está seguro de eliminar este proveedor?')) {
+        if (window.confirm('Â¿EstÃ¡ seguro de eliminar este proveedor?')) {
             deleteMutation.mutate(id);
         }
     };
@@ -75,14 +88,31 @@ export const ComprasPage = () => {
                 <Card className="border-border/50 shadow-sm overflow-hidden">
                     <CardHeader className="bg-muted/20 border-b border-border/50 pb-4">
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div className="relative w-full sm:w-96">
+                            <div className="flex flex-col sm:flex-row gap-4 w-full flex-1">
+                                <div className="relative w-full sm:w-96">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Buscar por RUC o Razón Social..."
+                                    placeholder="Buscar por RUC o RazÃ³n Social..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="pl-9 bg-background"
                                 />
+                            </div>
+                                {isSuperAdmin && (
+                                    <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                                        <SelectTrigger className="w-full sm:w-[200px]">
+                                            <SelectValue placeholder="Todas las empresas" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todas las empresas</SelectItem>
+                                            {companiesPage?.content.map((company) => (
+                                                <SelectItem key={company.id} value={company.id}>
+                                                    {company.businessName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
                             </div>
                             <Button onClick={handleCreate}>
                                 <Plus className="w-4 h-4 mr-2" />
@@ -96,7 +126,7 @@ export const ComprasPage = () => {
                                 <TableHeader className="bg-muted/30">
                                     <TableRow className="hover:bg-transparent">
                                         <TableHead className="font-semibold text-foreground/80 w-[150px]">RUC</TableHead>
-                                        <TableHead className="font-semibold text-foreground/80">RAZÓN SOCIAL</TableHead>
+                                        <TableHead className="font-semibold text-foreground/80">RAZÃ“N SOCIAL</TableHead>
                                         <TableHead className="font-semibold text-foreground/80">CONTACTO</TableHead>
                                         <TableHead className="font-semibold text-foreground/80">CORREO</TableHead>
                                         <TableHead className="text-right font-semibold text-foreground/80">ACCIONES</TableHead>
@@ -160,3 +190,5 @@ export const ComprasPage = () => {
         </div>
     );
 };
+
+

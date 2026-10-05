@@ -1,9 +1,11 @@
-﻿import { Outlet, NavLink, useLocation } from 'react-router-dom';
+﻿import { useState, useEffect } from 'react';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { useToggle2FaMutation } from '@/features/auth/hooks/useLoginMutation';
 import { useMeQuery } from '@/features/auth/hooks/useMeQuery';
 import { Button } from '@/components/ui/button';
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Menu } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { 
     LayoutGrid, 
     Briefcase, 
@@ -24,24 +26,29 @@ import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const NAVIGATION = [
-    { name: 'Dashboard', to: '/dashboard', icon: LayoutGrid },
-    { name: 'Proyectos', to: '/proyectos', icon: Briefcase },
-    { name: 'Cotizaciones', to: '/cotizaciones', icon: FileText },
-    { name: 'Inventario', to: '/inventario', icon: Package },
-    { name: 'Empleados', to: '/empleados', icon: HardHat },
-    { name: 'Maquinaria', to: '/maquinaria', icon: Truck },
-    { name: 'Proveedores', to: '/compras', icon: ShoppingCart },
-    { name: 'Facturación', to: '/facturacion', icon: Receipt },
-    { name: 'Usuarios', to: '/usuarios', icon: Users },
-    { name: 'Empresas', to: '/empresas', icon: Building2 },
-    { name: 'Reportes', to: '/reportes', icon: BarChart },
-    { name: 'Auditoría', to: '/auditoria', icon: ShieldCheck },
+    { name: 'Dashboard', to: '/dashboard', icon: LayoutGrid, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Proyectos', to: '/proyectos', icon: Briefcase, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN', 'TECNICO', 'INGENIERO', 'CONTADOR'] },
+    { name: 'Cotizaciones', to: '/cotizaciones', icon: FileText, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Inventario', to: '/inventario', icon: Package, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN'] },
+    { name: 'Empleados', to: '/empleados', icon: HardHat, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Maquinaria', to: '/maquinaria', icon: Truck, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN', 'INGENIERO', 'TECNICO'] },
+    { name: 'Proveedores', to: '/compras', icon: ShoppingCart, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN'] },
+    { name: 'Facturación', to: '/facturacion', icon: Receipt, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'CONTADOR'] },
+    { name: 'Usuarios', to: '/usuarios', icon: Users, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Empresas', to: '/empresas', icon: Building2, roles: ['SUPERADMIN'] },
+    { name: 'Reportes', to: '/reportes', icon: BarChart, roles: ['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'] },
+    { name: 'Auditoría', to: '/auditoria', icon: ShieldCheck, roles: ['SUPERADMIN'] },
 ];
 
 export const AppLayout = () => {
-    const { user, logout } = useAuthStore();
+    const { user, logout, hasRole } = useAuthStore();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { mutate: toggle2Fa, isPending: isToggling } = useToggle2FaMutation();
     const location = useLocation();
+    
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location.pathname]);
     
     // Call the /me endpoint to keep data fresh (e.g. fullName)
     useMeQuery();
@@ -80,10 +87,8 @@ export const AppLayout = () => {
     const headerInfo = getHeaderInfo();
     const displayName = user?.fullName || user?.username;
 
-    return (
-        <div className="flex h-screen bg-secondary/30 text-foreground font-sans overflow-hidden">
-            {/* Sidebar */}
-            <aside className="w-[260px] bg-card border-r border-border flex flex-col shrink-0">
+    const sidebarContent = (
+            <div className="flex flex-col h-full bg-card">
                 <div className="px-6 pb-8 pt-6 flex items-center gap-3">
                     <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-lg">
                         S
@@ -96,7 +101,7 @@ export const AppLayout = () => {
                 </div>
 
                 <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-                    {NAVIGATION.map((item) => (
+                    {NAVIGATION.filter(item => hasRole(item.roles)).map((item) => (
                         <NavLink
                             key={item.name}
                             to={item.to}
@@ -151,19 +156,39 @@ export const AppLayout = () => {
                         <LogOut className="w-5 h-5" />
                     </button>
                 </div>
+            </div>
+);
+
+    return (
+        <div className="flex h-screen bg-secondary/30 text-foreground font-sans overflow-hidden">
+            {/* Sidebar */}
+            <aside className="hidden md:flex w-[260px] border-r border-border flex-col shrink-0">
+                {sidebarContent}
             </aside>
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col overflow-hidden">
                 {/* Topbar */}
-                <header className="h-[72px] bg-background/50 backdrop-blur-sm border-b border-border/50 flex items-center justify-between px-10 shrink-0">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground">{headerInfo.title}</h1>
-                        <p className="text-sm text-muted-foreground">{headerInfo.subtitle}</p>
+                <header className="h-[72px] bg-background/50 backdrop-blur-sm border-b border-border/50 flex items-center justify-between px-4 md:px-10 shrink-0">
+                    <div className="flex items-center gap-4">
+                        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="md:hidden">
+                                    <Menu className="w-6 h-6" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="left" className="p-0 w-[260px] border-r-0">
+                                {sidebarContent}
+                            </SheetContent>
+                        </Sheet>
+                        <div>
+                            <h1 className="text-xl md:text-2xl font-bold text-foreground">{headerInfo.title}</h1>
+                            <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">{headerInfo.subtitle}</p>
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className="relative w-64 hidden md:block">
+                    <div className="flex items-center gap-3 md:gap-6">
+                        <div className="relative w-64 hidden lg:block">
                             <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                             <Input 
                                 placeholder="Buscar..." 
@@ -171,7 +196,7 @@ export const AppLayout = () => {
                             />
                         </div>
                         
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 md:gap-2">
                             <ThemeToggle />
                             <div className="relative cursor-pointer p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary/50">
                                 <Bell className="w-5 h-5" />
@@ -179,17 +204,22 @@ export const AppLayout = () => {
                             </div>
                         </div>
 
-                        <Button className="font-medium shadow-sm">
+                        <Button className="font-medium shadow-sm hidden sm:flex">
                             + Nuevo Proyecto
                         </Button>
                     </div>
                 </header>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-auto p-10 pt-6">
+                <div className="flex-1 overflow-auto p-4 md:p-10 md:pt-6">
                     <Outlet />
                 </div>
             </main>
         </div>
     );
 };
+
+
+
+
+

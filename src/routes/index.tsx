@@ -17,6 +17,25 @@ import { UsuariosPage } from '@/features/usuarios/pages/UsuariosPage';
 import { EmpresasPage } from '@/features/empresas/pages/EmpresasPage';
 import { ReportesPage } from '@/features/reportes/pages/ReportesPage';
 
+import { useAuthStore } from '@/app/store/useAuthStore';
+
+const SmartRedirector = () => {
+    const hasRole = useAuthStore(state => state.hasRole);
+    if (hasRole(['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA'])) return <Navigate to="/dashboard" replace />;
+    if (hasRole(['ALMACEN'])) return <Navigate to="/inventario" replace />;
+    if (hasRole(['TECNICO', 'INGENIERO', 'CONTADOR'])) return <Navigate to="/proyectos" replace />;
+    return <Navigate to="/login" replace />;
+};
+
+const NotFoundPage = () => (
+    <div className="flex flex-col items-center justify-center h-[80vh] text-center">
+        <h1 className="text-6xl font-bold text-muted-foreground mb-4">404</h1>
+        <h2 className="text-2xl font-semibold text-foreground mb-2">Página no encontrada</h2>
+        <p className="text-muted-foreground mb-8">El módulo que buscas no existe o ha sido movido.</p>
+        <Navigate to="/" replace />
+    </div>
+);
+
 export const AppRoutes = () => {
     return (
         <Routes>
@@ -28,35 +47,47 @@ export const AppRoutes = () => {
             {/* Rutas Protegidas por Autenticación */}
             <Route element={<ProtectedRoute />}>
                 <Route element={<AppLayout />}>
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/proyectos" element={<ProjectsPage />} />
-                    <Route path="/cotizaciones" element={<CotizacionesPage />} />
-                    <Route path="/inventario" element={<InventarioPage />} />
-                    <Route path="/maquinaria" element={<MaquinariaPage />} />
-                    <Route path="/compras" element={<ComprasPage />} />
-                    <Route path="/facturacion" element={<FacturacionPage />} />
-                    <Route path="/empleados" element={<EmpleadosPage />} />
-                    <Route path="/usuarios" element={<UsuariosPage />} />
-                    <Route path="/empresas" element={<EmpresasPage />} />
-                    <Route path="/reportes" element={<ReportesPage />} />
-                    <Route path="/auditoria" element={<AuditLogsPage />} />
+                    <Route element={<RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA']} />}>
+                        <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/cotizaciones" element={<CotizacionesPage />} />
+                        <Route path="/empleados" element={<EmpleadosPage />} />
+                        <Route path="/usuarios" element={<UsuariosPage />} />
+                        <Route path="/reportes" element={<ReportesPage />} />
+                    </Route>
+                    
+                    <Route element={<RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN', 'TECNICO', 'INGENIERO', 'CONTADOR']} />}>
+                        <Route path="/proyectos" element={<ProjectsPage />} />
+                    </Route>
+                    
+                    <Route element={<RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN']} />}>
+                        <Route path="/inventario" element={<InventarioPage />} />
+                        <Route path="/compras" element={<ComprasPage />} />
+                    </Route>
+                    
+                    <Route element={<RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'ALMACEN', 'INGENIERO', 'TECNICO']} />}>
+                        <Route path="/maquinaria" element={<MaquinariaPage />} />
+                    </Route>
+                    
+                    <Route element={<RoleGuard allowedRoles={['SUPERADMIN', 'ADMIN_EMPRESA', 'GERENCIA', 'CONTADOR']} />}>
+                        <Route path="/facturacion" element={<FacturacionPage />} />
+                    </Route>
+                    
+                    <Route element={<RoleGuard allowedRoles={['SUPERADMIN']} />}>
+                        <Route path="/empresas" element={<EmpresasPage />} />
+                        <Route path="/auditoria" element={<AuditLogsPage />} />
+                    </Route>
 
                     {/* Rutas Protegidas por Roles Específicos */}
                     <Route element={<RoleGuard allowedRoles={['ROLE_ADMIN', 'SUPERADMIN']} />}>
                         <Route path="/admin" element={<div className="p-4">Panel Administrador</div>} />
                     </Route>
 
-                    {/* Página No Autorizada */}
-                    <Route
-                        path="/unauthorized"
-                        element={<div className="p-6 text-red-600 font-bold">403 - No tienes permiso para ver esta sección</div>}
-                    />
-                </Route>
+                                    </Route>
             </Route>
 
-            {/* Redirección por Defecto: Raíz y Wildcard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            {/* Redirección por Defecto Inteligente */}
+            <Route path="/" element={<SmartRedirector />} />
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );
 };

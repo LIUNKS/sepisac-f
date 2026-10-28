@@ -62,6 +62,10 @@ export const ViewInventoryItemModal = ({ isOpen, onClose, item }: ViewInventoryI
                             <p className="text-sm text-muted-foreground font-medium">Ubicación</p>
                             <p className="text-foreground">{item.location}</p>
                         </div>
+                        <div className="col-span-2">
+                            <p className="text-sm text-muted-foreground font-medium">Descripción Técnica</p>
+                            <p className="text-sm text-foreground">{item.description || 'Sin descripción adicional'}</p>
+                        </div>
                     </div>
 
                     <div className="border-t border-border pt-4 grid grid-cols-3 gap-4">

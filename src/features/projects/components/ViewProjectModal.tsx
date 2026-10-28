@@ -47,7 +47,7 @@ export const ViewProjectModal = ({ project, isOpen, onClose }: ViewProjectModalP
                         <Badge 
                             variant="secondary" 
                             className={
-                                project.status === 'EN PROGRESO' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
+                                (project.status === 'EN_PROCESO' || project.status === 'EN PROGRESO') ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
                                 project.status === 'COMPLETADO' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
                                 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                             }
@@ -62,7 +62,7 @@ export const ViewProjectModal = ({ project, isOpen, onClose }: ViewProjectModalP
                         <div>
                             <h4 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-3">
                                 <Info className="w-4 h-4 text-primary" />
-                                Informacin General
+                                Información General
                             </h4>
                             <div className="space-y-3 bg-secondary/20 p-4 rounded-lg border border-border/50">
                                 <div>
@@ -73,7 +73,7 @@ export const ViewProjectModal = ({ project, isOpen, onClose }: ViewProjectModalP
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-xs text-muted-foreground font-medium mb-1">Cotizacin Vinculada</p>
+                                    <p className="text-xs text-muted-foreground font-medium mb-1">Cotización Vinculada</p>
                                     <p className="text-sm font-medium flex items-center gap-2 text-foreground">
                                         <FileText className="w-4 h-4 text-muted-foreground" />
                                         ID: {project.quotationId.split('-')[0]}...
@@ -103,10 +103,10 @@ export const ViewProjectModal = ({ project, isOpen, onClose }: ViewProjectModalP
                     </div>
 
                     <div className="col-span-2">
-                        <h4 className="text-sm font-semibold text-foreground mb-3">Descripcin</h4>
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Descripción</h4>
                         <div className="bg-secondary/20 p-4 rounded-lg border border-border/50">
                             <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                                {project.description || 'Sin descripcin disponible.'}
+                                {project.description || 'Sin descripción disponible.'}
                             </p>
                         </div>
                     </div>
@@ -115,3 +115,4 @@ export const ViewProjectModal = ({ project, isOpen, onClose }: ViewProjectModalP
         </Dialog>
     );
 };
+

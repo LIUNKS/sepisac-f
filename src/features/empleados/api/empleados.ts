@@ -54,6 +54,8 @@ export const useEmployees = (companyId: string | undefined, filters: Omit<Employ
     return useQuery({
         queryKey: employeeKeys.list({ companyId, ...filters }),
         queryFn: () => getEmployees(companyId, filters),
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: false,
     });
 };
 

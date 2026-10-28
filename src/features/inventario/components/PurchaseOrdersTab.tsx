@@ -3,36 +3,44 @@ import { PreviewAutoGenerateModal } from './PreviewAutoGenerateModal';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Settings, Ban, FileText, CheckCircle2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Loader2, Settings, Ban, FileText, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { usePurchaseOrders, useCancelPurchaseOrder, useReceivePurchaseOrder } from '../hooks/usePurchaseOrders';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale/es';
 
+interface ConfirmAction {
+    type: 'RECEIVE' | 'CANCEL';
+    orderId: string;
+    orderNumber: string;
+}
+
 export const PurchaseOrdersTab = () => {
     const [page] = useState(0);
     const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null);
+
     const { data, isLoading } = usePurchaseOrders({ page, size: 20, sort: 'createdAt,desc' });
     const cancelMutation = useCancelPurchaseOrder();
     const receiveMutation = useReceivePurchaseOrder();
 
     const orders = data?.content || [];
 
-    const handleCancel = (id: string) => {
-        if (window.confirm('¿Está seguro de cancelar esta orden de compra?')) {
-            cancelMutation.mutate(id);
+    const handleConfirmAction = () => {
+        if (!confirmAction) return;
+
+        if (confirmAction.type === 'RECEIVE') {
+            receiveMutation.mutate(confirmAction.orderId, {
+                onSettled: () => setConfirmAction(null)
+            });
+        } else {
+            cancelMutation.mutate(confirmAction.orderId, {
+                onSettled: () => setConfirmAction(null)
+            });
         }
     };
 
-    
-    const handleReceive = (id: string) => {
-        if (window.confirm('¿Está seguro de recibir los materiales de esta orden? Esto actualizará el stock e ingresará los movimientos.')) {
-            receiveMutation.mutate(id);
-        }
-    };
-
-    const handleAutoGen = () => {
-        setIsPreviewModalOpen(true);
-    };
+    const isActionPending = receiveMutation.isPending || cancelMutation.isPending;
 
     return (
         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -46,7 +54,7 @@ export const PurchaseOrdersTab = () => {
                         Gestiona las compras a proveedores y la reposición de stock.
                     </p>
                 </div>
-                <Button onClick={handleAutoGen}  variant="default">
+                <Button onClick={() => setIsPreviewModalOpen(true)} variant="default">
                     <Settings className="w-4 h-4 mr-2" />
                     Autogenerar Órdenes
                 </Button>
@@ -80,7 +88,7 @@ export const PurchaseOrdersTab = () => {
                         ) : (
                             orders.map((order) => (
                                 <TableRow key={order.id}>
-                                    <TableCell className="font-medium">{order.orderNumber}</TableCell>
+                                    <TableCell className="font-medium font-mono text-sm">{order.orderNumber}</TableCell>
                                     <TableCell>
                                         {format(new Date(order.createdAt), "dd MMM yyyy, HH:mm", { locale: es })}
                                     </TableCell>
@@ -95,7 +103,7 @@ export const PurchaseOrdersTab = () => {
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={
-                                            order.status === 'COMPLETADA' ? 'default' :
+                                            order.status === 'COMPLETADA' || order.status === 'RECIBIDA' ? 'default' :
                                             order.status === 'CANCELADA' ? 'destructive' :
                                             'outline'
                                         } className={order.status === 'PENDIENTE' ? 'border-yellow-500 text-yellow-600 bg-yellow-50 dark:bg-yellow-950/30' : ''}>
@@ -105,11 +113,31 @@ export const PurchaseOrdersTab = () => {
                                     <TableCell className="text-right">
                                         {order.status === 'PENDIENTE' && (
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => handleReceive(order.id)} disabled={receiveMutation.isPending}>
-                                                    <CheckCircle2 className="w-4 h-4 mr-2" /> Recibir
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" 
+                                                    onClick={() => setConfirmAction({
+                                                        type: 'RECEIVE',
+                                                        orderId: order.id,
+                                                        orderNumber: order.orderNumber
+                                                    })}
+                                                    disabled={isActionPending}
+                                                >
+                                                    <CheckCircle2 className="w-4 h-4 mr-1.5" /> Recibir
                                                 </Button>
-                                                <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10" onClick={() => handleCancel(order.id)} disabled={cancelMutation.isPending}>
-                                                    <Ban className="w-4 h-4 mr-2" /> Cancelar
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    className="text-destructive hover:bg-destructive/10" 
+                                                    onClick={() => setConfirmAction({
+                                                        type: 'CANCEL',
+                                                        orderId: order.id,
+                                                        orderNumber: order.orderNumber
+                                                    })}
+                                                    disabled={isActionPending}
+                                                >
+                                                    <Ban className="w-4 h-4 mr-1.5" /> Cancelar
                                                 </Button>
                                             </div>
                                         )}
@@ -125,6 +153,69 @@ export const PurchaseOrdersTab = () => {
                 isOpen={isPreviewModalOpen} 
                 onClose={() => setIsPreviewModalOpen(false)} 
             />
+
+            {/* Custom Confirmation Modal */}
+            <Dialog open={Boolean(confirmAction)} onOpenChange={(open) => !open && !isActionPending && setConfirmAction(null)}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <div className={`mx-auto w-12 h-12 rounded-full flex items-center justify-center mb-3 ${
+                            confirmAction?.type === 'RECEIVE' 
+                                ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' 
+                                : 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400'
+                        }`}>
+                            {confirmAction?.type === 'RECEIVE' ? (
+                                <CheckCircle2 className="w-6 h-6" />
+                            ) : (
+                                <AlertTriangle className="w-6 h-6" />
+                            )}
+                        </div>
+                        <DialogTitle className="text-center text-lg">
+                            {confirmAction?.type === 'RECEIVE' ? '¿Recibir Orden de Compra?' : '¿Cancelar Orden de Compra?'}
+                        </DialogTitle>
+                        <DialogDescription className="text-center pt-2 text-sm">
+                            {confirmAction?.type === 'RECEIVE' ? (
+                                <>
+                                    Se registrará la entrada de los materiales de la orden <strong>{confirmAction?.orderNumber}</strong>. El inventario se actualizará automáticamente y se generarán los movimientos en el Kardex.
+                                </>
+                            ) : (
+                                <>
+                                    ¿Estás seguro de cancelar la orden <strong>{confirmAction?.orderNumber}</strong>? Esta acción no se puede deshacer.
+                                </>
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter className="mt-4 flex flex-row gap-2 justify-center sm:justify-center">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setConfirmAction(null)}
+                            disabled={isActionPending}
+                            className="w-full"
+                        >
+                            Volver
+                        </Button>
+                        <Button
+                            type="button"
+                            variant={confirmAction?.type === 'RECEIVE' ? 'default' : 'destructive'}
+                            onClick={handleConfirmAction}
+                            disabled={isActionPending}
+                            className="w-full"
+                        >
+                            {isActionPending ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Procesando...
+                                </>
+                            ) : confirmAction?.type === 'RECEIVE' ? (
+                                'Sí, recibir materiales'
+                            ) : (
+                                'Sí, cancelar orden'
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

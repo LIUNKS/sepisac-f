@@ -17,7 +17,7 @@ export interface PurchaseOrder {
     orderNumber: string;
     currency: string;
     exchangeRate: number;
-    status: 'PENDIENTE' | 'COMPLETADA' | 'CANCELADA';
+    status: 'PENDIENTE' | 'RECIBIDA' | 'COMPLETADA' | 'CANCELADA';
     totalAmount: number;
     createdAt: string;
     updatedAt: string;

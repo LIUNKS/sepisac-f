@@ -37,7 +37,7 @@ const projectUpdateSchema = z.object({
     title: z.string().min(1, 'El título es obligatorio').max(150, 'Máximo 150 caracteres'),
     clientName: z.string().min(1, 'El nombre del cliente es obligatorio').max(150, 'Máximo 150 caracteres'),
     description: z.string().optional(),
-    status: z.enum(['PENDIENTE', 'EN PROGRESO', 'COMPLETADO']),
+    status: z.enum(['PENDIENTE', 'EN_PROCESO', 'EN PROGRESO', 'COMPLETADO', 'CANCELADO']),
     startDate: z.string().optional().nullable(),
     endDate: z.string().optional().nullable(),
 });
@@ -71,7 +71,7 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
                 title: project.title,
                 clientName: project.clientName,
                 description: project.description || '',
-                status: project.status as any,
+                status: (project.status === 'EN PROGRESO' ? 'EN_PROCESO' : project.status) as any,
                 startDate: project.startDate || '',
                 endDate: project.endDate || '',
             });
@@ -155,7 +155,7 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
                                             </FormControl>
                                             <SelectContent>
                                                 <SelectItem value="PENDIENTE">Pendiente</SelectItem>
-                                                <SelectItem value="EN PROGRESO">En Progreso</SelectItem>
+                                                <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
                                                 <SelectItem value="COMPLETADO">Completado</SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -222,3 +222,4 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
         </Dialog>
     );
 };
+

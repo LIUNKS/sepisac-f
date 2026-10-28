@@ -56,7 +56,9 @@ export const useUsers = (companyId: string | undefined, filters: Omit<UserFilter
     return useQuery({
         queryKey: userKeys.list({ companyId, ...filters }),
         queryFn: () => getUsers(companyId, filters),
-        enabled
+        enabled,
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: false,
     });
 };
 

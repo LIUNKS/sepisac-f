@@ -9,14 +9,17 @@ import { useState } from 'react';
 
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { getQuotations, getQuotationById, updateQuotationStatus } from '../services/quotation.service';
+import { getProjects } from '@/features/projects/services/projectService';
 import { ViewQuotationModal } from '../components/ViewQuotationModal';
 import { EditQuotationModal } from '../components/EditQuotationModal';
 import { CreateQuotationModal } from '../components/CreateQuotationModal';
 import { exportQuotationsToExcel } from '../utils/exportToExcel';
+import { formatServiceType } from '../utils/formatServiceType';
 import { pdf } from '@react-pdf/renderer';
 import { QuotationPDF } from '../components/QuotationPDF';
 import { toast } from 'sonner';
 import type { Quotation } from '../types';
+import type { Project } from '@/features/projects/types';
 
 export const CotizacionesPage = () => {
     const queryClient = useQueryClient();
@@ -65,14 +68,25 @@ export const CotizacionesPage = () => {
 
     const { data, isLoading } = useQuery({
         queryKey: ['quotations', user?.companyId],
-        queryFn: () => getQuotations(user?.companyId || '')
+        queryFn: () => getQuotations(user?.companyId || ''),
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: false,
+    });
+
+    const { data: projectsData } = useQuery({
+        queryKey: ['projects', user?.companyId],
+        queryFn: () => getProjects(user?.companyId || ''),
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: false,
     });
 
     const quotations = data?.content || [];
+    const projects: Project[] = projectsData?.content || [];
 
     const tabs = [
-        { id: 'Todas', label: `Todas (${quotations.length})`, count: quotations.length },
+        { id: 'Todas', label: 'Todas', count: quotations.length },
         { id: 'Borradores', label: 'Borradores', count: quotations.filter(q => q.status === 'BORRADOR').length },
+        { id: 'Enviadas', label: 'Enviadas', count: quotations.filter(q => q.status === 'ENVIADA').length },
         { id: 'Aprobadas', label: 'Aprobadas', count: quotations.filter(q => q.status === 'APROBADA').length },
         { id: 'Rechazadas', label: 'Rechazadas', count: quotations.filter(q => q.status === 'RECHAZADA').length },
     ];
@@ -80,6 +94,7 @@ export const CotizacionesPage = () => {
     const filteredQuotations = quotations.filter(q => {
         if (activeTab === 'Todas') return true;
         if (activeTab === 'Borradores') return q.status === 'BORRADOR';
+        if (activeTab === 'Enviadas') return q.status === 'ENVIADA';
         if (activeTab === 'Aprobadas') return q.status === 'APROBADA';
         if (activeTab === 'Rechazadas') return q.status === 'RECHAZADA';
         return true;
@@ -90,7 +105,7 @@ export const CotizacionesPage = () => {
     const totalPending = quotations.filter(q => q.status === 'BORRADOR').length;
     const conversionRate = totalIssued > 0 ? Math.round((totalApproved / totalIssued) * 100) : 0;
 
-            const kpisData = [
+    const kpisData = [
         { title: 'Cotizaciones Emitidas', value: totalIssued.toString(), trend: 'Este mes', trendType: 'success', icon: FileText },
         { title: 'Aprobadas (Éxito)', value: totalApproved.toString(), trend: `Tasa de conversión: ${conversionRate}%`, trendType: 'success', icon: CheckCircle2 },
         { title: 'Borradores de Revisión', value: totalPending.toString(), trend: 'Por gestionar', trendType: 'warning', icon: Clock },
@@ -146,12 +161,14 @@ export const CotizacionesPage = () => {
                                             : 'border-transparent text-muted-foreground hover:text-foreground'
                                     }`}
                                 >
-                                    {tab.label}
-                                    {tab.id === 'Todas' && (
-                                        <span className="bg-secondary text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                            {tab.count}
-                                        </span>
-                                    )}
+                                    <span>{tab.label}</span>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                                        activeTab === tab.id
+                                            ? 'bg-primary/10 text-primary'
+                                            : 'bg-secondary text-muted-foreground'
+                                    }`}>
+                                        {tab.count}
+                                    </span>
                                 </button>
                             ))}
                         </div>
@@ -184,87 +201,120 @@ export const CotizacionesPage = () => {
                                 <TableHead className="text-muted-foreground font-semibold text-right px-6">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
-                                                                        <TableBody>
-                            {filteredQuotations.map((quote) => (
-                                <TableRow key={quote.id} className="border-border/50 hover:bg-muted/50">
-                                    <TableCell className="px-6 py-4 font-bold text-foreground">
-                                        {quote.quotationNumber}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="font-semibold text-foreground">{quote.clientName}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">{quote.serviceType}</div>
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">-</TableCell>
-                                    <TableCell className="text-muted-foreground">{new Date(quote.createdAt).toLocaleDateString()}</TableCell>
-                                    <TableCell className="font-bold text-foreground">{quote.currency} {quote.totalAmount.toFixed(2)}</TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger className="focus:outline-none">
-                                                <Badge 
-                                                    variant="secondary" 
-                                                    className={
-                                                        `cursor-pointer gap-1.5 ${
-                                                            quote.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
-                                                            quote.status === 'BORRADOR' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20' :
-                                                            quote.status === 'ENVIADA' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' :
-                                                            'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'
-                                                        }`
-                                                    }
-                                                >
-                                                    <span className={
-                                                        `w-1.5 h-1.5 rounded-full ${
-                                                            quote.status === 'APROBADA' ? 'bg-emerald-600 dark:bg-emerald-400' :
-                                                            quote.status === 'BORRADOR' ? 'bg-amber-600 dark:bg-amber-400' :
-                                                            quote.status === 'ENVIADA' ? 'bg-blue-600 dark:bg-blue-400' :
-                                                            'bg-red-600 dark:bg-red-400'
-                                                        }`
-                                                    }></span>
-                                                    {quote.status}
-                                                </Badge>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent>
-                                                <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'ENVIADA' })}>Marcar como ENVIADA</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'APROBADA' })}>Marcar como APROBADA</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'RECHAZADA' })}>Marcar como RECHAZADA</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                    <TableCell className="px-6 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <Button 
-                                                variant="outline" 
-                                                size="icon" 
-                                                className="w-8 h-8 text-muted-foreground hover:text-foreground"
-                                                onClick={() => {
-                                                    setSelectedQuotation(quote);
-                                                    setIsViewModalOpen(true);
-                                                }}
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </Button>
-                                            <Button 
-                                                variant="outline" 
-                                                size="icon" 
-                                                className="w-8 h-8 text-muted-foreground hover:text-foreground"
-                                                onClick={() => {
-                                                    setSelectedQuotation(quote);
-                                                    setIsEditModalOpen(true);
-                                                }}
-                                            >
-                                                <Pencil className="w-4 h-4" />
-                                            </Button>
-                                            <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={() => handleDownloadPDF(quote.id, quote.quotationNumber)} disabled={downloadingId === quote.id}>
-                                                {downloadingId === quote.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                            </Button>
-                                        </div>
+                        <TableBody>
+                            {filteredQuotations.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                        No hay cotizaciones para mostrar en este estado
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                filteredQuotations.map((quote) => {
+                                    const linkedProject = projects.find(p => p.quotationId === quote.id);
+
+                                    return (
+                                        <TableRow key={quote.id} className="border-border/50 hover:bg-muted/50">
+                                            <TableCell className="px-6 py-4 font-bold text-foreground">
+                                                {quote.quotationNumber}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="font-semibold text-foreground">{quote.clientName}</div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {linkedProject ? (
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium text-foreground text-sm flex items-center gap-1.5">
+                                                            <span className="w-2 h-2 rounded-full bg-blue-500 inline-block shrink-0" title="Proyecto vinculado en ejecución" />
+                                                            {linkedProject.title}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground mt-0.5">
+                                                            {linkedProject.code} • {formatServiceType(quote.serviceType)}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium text-foreground text-sm">
+                                                            {formatServiceType(quote.serviceType)}
+                                                        </span>
+                                                        <span className="text-xs text-muted-foreground mt-0.5">
+                                                            Sin proyecto vinculado
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground">{new Date(quote.createdAt).toLocaleDateString()}</TableCell>
+                                            <TableCell className="font-bold text-foreground">{quote.currency} {quote.totalAmount.toFixed(2)}</TableCell>
+                                            <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger className="focus:outline-none">
+                                                        <Badge 
+                                                            variant="secondary" 
+                                                            className={
+                                                                `cursor-pointer gap-1.5 ${
+                                                                    quote.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
+                                                                    quote.status === 'BORRADOR' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20' :
+                                                                    quote.status === 'ENVIADA' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' :
+                                                                    'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'
+                                                                }`
+                                                            }
+                                                        >
+                                                            <span className={
+                                                                `w-1.5 h-1.5 rounded-full ${
+                                                                    quote.status === 'APROBADA' ? 'bg-emerald-600 dark:bg-emerald-400' :
+                                                                    quote.status === 'BORRADOR' ? 'bg-amber-600 dark:bg-amber-400' :
+                                                                    quote.status === 'ENVIADA' ? 'bg-blue-600 dark:bg-blue-400' :
+                                                                    'bg-red-600 dark:bg-red-400'
+                                                                }`
+                                                            }></span>
+                                                            {quote.status}
+                                                        </Badge>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent>
+                                                        <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'ENVIADA' })}>Marcar como ENVIADA</DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'APROBADA' })}>Marcar como APROBADA</DropdownMenuItem>
+                                                        <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'RECHAZADA' })}>Marcar como RECHAZADA</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                            <TableCell className="px-6 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="icon" 
+                                                        className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                        onClick={() => {
+                                                            setSelectedQuotation(quote);
+                                                            setIsViewModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="icon" 
+                                                        className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                        onClick={() => {
+                                                            setSelectedQuotation(quote);
+                                                            setIsEditModalOpen(true);
+                                                        }}
+                                                    >
+                                                        <Pencil className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={() => handleDownloadPDF(quote.id, quote.quotationNumber)} disabled={downloadingId === quote.id}>
+                                                        {downloadingId === quote.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
-                    <ViewQuotationModal
+
+            <ViewQuotationModal
                 quotation={selectedQuotation}
                 isOpen={isViewModalOpen}
                 onClose={() => {
@@ -272,7 +322,8 @@ export const CotizacionesPage = () => {
                     setSelectedQuotation(null);
                 }}
             />
-                    <EditQuotationModal
+
+            <EditQuotationModal
                 quotation={selectedQuotation}
                 isOpen={isEditModalOpen}
                 onClose={() => {
@@ -280,6 +331,7 @@ export const CotizacionesPage = () => {
                     setSelectedQuotation(null);
                 }}
             />
+
             <CreateQuotationModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
@@ -287,12 +339,3 @@ export const CotizacionesPage = () => {
         </div>
     );
 };
-
-
-
-
-
-
-
-
-

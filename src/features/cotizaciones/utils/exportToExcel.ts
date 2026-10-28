@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import type { Quotation } from '../types';
+import { formatServiceType } from './formatServiceType';
 
 export const exportQuotationsToExcel = async (quotations: Quotation[]) => {
     const workbook = new ExcelJS.Workbook();
@@ -33,7 +34,7 @@ export const exportQuotationsToExcel = async (quotations: Quotation[]) => {
         worksheet.addRow({
             quotationNumber: q.quotationNumber,
             clientName: q.clientName,
-            serviceType: q.serviceType,
+            serviceType: formatServiceType(q.serviceType),
             companyName: q.companyName,
             currency: q.currency,
             subtotalCosts: q.subtotalCosts,

@@ -1,23 +1,23 @@
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { 
-    TrendingUp, 
-    TrendingDown, 
-    FileText, 
-    HardHat, 
+import {
+    TrendingUp,
+    TrendingDown,
+    FileText,
+    HardHat,
     ArrowUpRight,
     ArrowDownRight,
     Download,
     CalendarDays,
-    Database
+    RefreshCw,
 } from 'lucide-react';
-import { 
-    BarChart, 
-    Bar, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip as RechartsTooltip, 
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip as RechartsTooltip,
     ResponsiveContainer,
     PieChart,
     Pie,
@@ -26,30 +26,21 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDashboardData, seedDashboardData } from '../services/dashboard.service';
+import { useQuery } from '@tanstack/react-query';
+import { getDashboardData } from '../services/dashboard.service';
 import { toast } from 'sonner';
 
 export const DashboardPage = () => {
     const { user } = useAuthStore();
-    const queryClient = useQueryClient();
 
-    const { data, isPending, isLoading, error } = useQuery({
+    const { data, isPending, isLoading, isFetching, error, refetch } = useQuery({
         queryKey: ['dashboard', user?.companyId],
         queryFn: () => getDashboardData(user?.companyId || ''),
-        enabled: !!user?.companyId
+        enabled: !!user?.companyId,
+        staleTime: 60 * 1000,
+        refetchOnWindowFocus: false,
     });
 
-    const seedMutation = useMutation({
-        mutationFn: () => seedDashboardData(user?.companyId || ''),
-        onSuccess: () => {
-            toast.success('Datos de prueba generados exitosamente');
-            queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-        },
-        onError: (err: any) => {
-            toast.error('Error al generar los datos de prueba: ' + err.message);
-        }
-    });
 
     if (error) {
         return (
@@ -76,25 +67,49 @@ export const DashboardPage = () => {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-foreground">Resumen General</h2>
-                    <p className="text-muted-foreground text-sm">Vista general de tus indicadores clave</p>
+            {/* Toolbar Operativo Superior Balanceado */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
+                {/* Lado Izquierdo: Estado Operativo en Vivo */}
+                <div className="flex items-center gap-2.5">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card border border-border text-xs font-medium text-foreground shadow-xs">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span className="font-semibold text-foreground">Operaciones en Vivo</span>
+                        <span className="text-muted-foreground">•</span>
+                        <span className="text-muted-foreground font-medium">
+                            {data.proyectosActivos} {data.proyectosActivos === 1 ? 'proyecto activo' : 'proyectos activos'}
+                        </span>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    {totalProjects === 0 && (
-                        <Button variant="outline" onClick={() => seedMutation.mutate()} disabled={seedMutation.isPending} className="gap-2">
-                            <Database className="w-4 h-4" />
-                            {seedMutation.isPending ? 'Generando...' : 'Generar Datos'}
-                        </Button>
-                    )}
-                    <Button variant="outline" className="gap-2 text-muted-foreground hidden sm:flex">
-                        <CalendarDays className="w-4 h-4" />
-                        Últimos 8 meses
+
+                {/* Lado Derecho: Filtro de Período y Acciones */}
+                <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+                    <div className="inline-flex items-center gap-1.5 bg-card px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground shadow-xs">
+                        <CalendarDays className="w-3.5 h-3.5 text-primary" />
+                        <span>Últimos 8 meses</span>
+                    </div>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => refetch()}
+                        disabled={isFetching}
+                        className="h-8 text-xs font-medium px-3 bg-card border-border hover:bg-muted/60 transition-colors shadow-xs"
+                        title="Actualizar métricas del dashboard"
+                    >
+                        <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isFetching ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
+                        Actualizar
                     </Button>
-                    <Button onClick={handleExport} className="gap-2">
-                        <Download className="w-4 h-4" />
-                        Exportar Reporte
+
+                    <Button
+                        onClick={handleExport}
+                        size="sm"
+                        className="h-8 text-xs font-medium shadow-xs px-3.5 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                        <Download className="w-3.5 h-3.5" />
+                        Exportar Resumen
                     </Button>
                 </div>
             </div>
@@ -193,18 +208,18 @@ export const DashboardPage = () => {
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={data.ingresosVsEgresos} barSize={12}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: 'currentColor', opacity: 0.7, fontSize: 12}} dy={10} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'currentColor', opacity: 0.7, fontSize: 12 }} dy={10} />
                                     <YAxis hide />
-                                    <RechartsTooltip 
-                                        cursor={{fill: 'hsl(var(--muted))', opacity: 0.5}} 
+                                    <RechartsTooltip
+                                        cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }}
                                         formatter={(value: any) => [`S/ ${(Number(value) * 1000).toLocaleString()}`, undefined]}
                                         contentStyle={{
-                                            backgroundColor: 'hsl(var(--card))', 
+                                            backgroundColor: 'hsl(var(--card))',
                                             color: 'hsl(var(--foreground))',
-                                            borderRadius: '8px', 
-                                            borderColor: 'hsl(var(--border))', 
+                                            borderRadius: '8px',
+                                            borderColor: 'hsl(var(--border))',
                                             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                        }} 
+                                        }}
                                     />
                                     <Bar dataKey="ingresos" fill="#0062ff" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="egresos" fill="#60a5fa" radius={[4, 4, 0, 0]} />
@@ -238,21 +253,21 @@ export const DashboardPage = () => {
                                                 <Cell key={`cell-${index}`} fill={entry.color} />
                                             ))}
                                         </Pie>
-                                        <RechartsTooltip 
+                                        <RechartsTooltip
                                             contentStyle={{
-                                                backgroundColor: 'hsl(var(--card))', 
+                                                backgroundColor: 'hsl(var(--card))',
                                                 color: 'hsl(var(--foreground))',
-                                                borderRadius: '8px', 
-                                                borderColor: 'hsl(var(--border))', 
+                                                borderRadius: '8px',
+                                                borderColor: 'hsl(var(--border))',
                                                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                                            }} 
+                                            }}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="w-full h-full rounded-full border-[20px] border-muted flex items-center justify-center"></div>
                             )}
-                            
+
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                                 <span className="text-2xl font-bold text-foreground">{totalProjects}</span>
                                 <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</span>
@@ -263,12 +278,12 @@ export const DashboardPage = () => {
                             {data.estadoProyectos.map(item => (
                                 <div key={item.name} className="flex items-center justify-between text-sm">
                                     <div className="flex items-center gap-2 text-foreground/80">
-                                        <span className="w-2.5 h-2.5 rounded-full" style={{backgroundColor: item.color}}></span>
+                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
                                         {item.name}
                                     </div>
                                     <div className="font-medium text-foreground">
                                         {item.value} <span className="text-muted-foreground font-normal ml-1">
-                                            {totalProjects > 0 ? Math.round((item.value/totalProjects)*100) : 0}%
+                                            {totalProjects > 0 ? Math.round((item.value / totalProjects) * 100) : 0}%
                                         </span>
                                     </div>
                                 </div>
@@ -314,12 +329,12 @@ export const DashboardPage = () => {
                                         {project.startDate || '-'} / {project.endDate || '-'}
                                     </TableCell>
                                     <TableCell>
-                                        <Badge 
-                                            variant="secondary" 
+                                        <Badge
+                                            variant="secondary"
                                             className={
                                                 project.status === 'EN PROGRESO' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' :
-                                                project.status === 'COMPLETADO' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
-                                                'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20'
+                                                    project.status === 'COMPLETADO' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
+                                                        'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20'
                                             }
                                         >
                                             {project.status}

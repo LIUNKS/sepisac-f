@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { Quotation } from '../types';
+import { formatServiceType } from '../utils/formatServiceType';
 
 // Opcional: Puedes registrar fuentes personalizadas aquí
 // Font.register({ family: 'Inter', src: '...' });
@@ -53,7 +54,7 @@ export const QuotationPDF = ({ quotation }: QuotationPDFProps) => {
                 {/* Info Boxes */}
                 <View style={styles.titleSection}>
                     <Text style={styles.docTitle}>Cotización Comercial</Text>
-                    <Text style={{ fontSize: 10 }}>Referencia: {quotation.serviceType}</Text>
+                    <Text style={{ fontSize: 10 }}>Referencia: {formatServiceType(quotation.serviceType)}</Text>
                 </View>
 
                 <View style={styles.grid2}>

@@ -11,6 +11,7 @@ import { pdf } from '@react-pdf/renderer';
 import { QuotationPDF } from './QuotationPDF';
 import { toast } from 'sonner';
 import type { Quotation } from '../types';
+import { formatServiceType } from '../utils/formatServiceType';
 import { useState } from 'react';
 import { CreateProjectFromQuotationModal } from './CreateProjectFromQuotationModal';
 
@@ -74,7 +75,7 @@ export const ViewQuotationModal = ({ quotation, isOpen, onClose }: ViewQuotation
                                     {quotation.quotationNumber}
                                 </DialogTitle>
                                 <p className="text-sm text-muted-foreground mt-1 font-medium">
-                                    {quotation.serviceType}
+                                    {formatServiceType(quotation.serviceType)}
                                 </p>
                             </div>
                         </div>

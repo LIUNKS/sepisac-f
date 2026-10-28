@@ -1,6 +1,7 @@
 export interface Supplier {
     id: string;
     companyId: string;
+    companyName?: string;
     businessName: string;
     ruc: string;
     contactPhone?: string;

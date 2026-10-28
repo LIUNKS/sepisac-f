@@ -93,7 +93,7 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="description" className="text-right">
-                            Ubicación
+                            Descripción
                         </Label>
                         <Input
                             id="description"

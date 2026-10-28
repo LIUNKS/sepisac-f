@@ -1,80 +1,60 @@
-import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, ShieldCheck } from 'lucide-react';
+import { Loader2, ShieldCheck } from 'lucide-react';
 import { useRoles } from '../api/roles';
-import { useAuthStore } from '@/app/store/useAuthStore';
-import { RoleFormModal } from './RoleFormModal';
 
 export const RolesTab = () => {
     const { data: roles, isLoading } = useRoles();
-    const { hasRole } = useAuthStore();
-    const isSuperAdmin = hasRole(['SUPERADMIN']);
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
-        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-between items-center bg-muted/20 p-4 rounded-lg border border-border/50">
-                <div>
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-primary" />
-                        Catálogo de Roles
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                        Administra los roles del sistema y sus descripciones.
-                    </p>
-                </div>
-                {isSuperAdmin && (
-                    <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-                        <Plus className="w-4 h-4" />
-                        Nuevo Rol
-                    </Button>
-                )}
-            </div>
-
-            <div className="border border-border/50 rounded-lg overflow-hidden bg-card">
-                <Table>
-                    <TableHeader className="bg-muted/30">
+        <div className="overflow-x-auto">
+            <Table>
+                <TableHeader>
+                    <TableRow className="border-border/50 hover:bg-transparent bg-secondary/20">
+                        <TableHead className="w-20 px-6 font-semibold text-muted-foreground">ID</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground">Nombre del Rol</TableHead>
+                        <TableHead className="font-semibold text-muted-foreground">Descripción de Autorización</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {isLoading ? (
                         <TableRow>
-                            <TableHead className="w-16">ID</TableHead>
-                            <TableHead>ROL</TableHead>
-                            <TableHead>DESCRIPCIÓN</TableHead>
+                            <TableCell colSpan={3} className="h-32 text-center">
+                                <div className="flex flex-col items-center gap-2">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                    <span className="text-xs text-muted-foreground">Cargando catálogo de roles...</span>
+                                </div>
+                            </TableCell>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
-                            <TableRow>
-                                <TableCell colSpan={3} className="h-24 text-center">
-                                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-primary" />
+                    ) : roles?.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={3} className="h-32 text-center text-muted-foreground">
+                                <div className="flex flex-col items-center gap-2">
+                                    <ShieldCheck className="w-10 h-10 text-muted-foreground opacity-30" />
+                                    <span className="text-foreground font-medium">No hay roles registrados</span>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        roles?.map((role) => (
+                            <TableRow key={role.id} className="border-border/50 hover:bg-muted/50">
+                                <TableCell className="px-6 py-4 font-mono font-medium text-foreground">
+                                    #{role.id}
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="outline" className="font-semibold text-xs border-primary/20 text-primary bg-primary/5 gap-1.5 py-1 px-2.5">
+                                        <ShieldCheck className="w-3.5 h-3.5" />
+                                        {role.name.replace('ROLE_', '')}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-sm text-muted-foreground">
+                                    {role.description || 'Sin descripción detallada'}
                                 </TableCell>
                             </TableRow>
-                        ) : roles?.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                                    No hay roles registrados.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            roles?.map((role) => (
-                                <TableRow key={role.id}>
-                                    <TableCell className="font-medium">{role.id}</TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline" className="font-semibold text-primary">
-                                            {role.name}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-muted-foreground">
-                                        {role.description || '-'}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-            <RoleFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                        ))
+                    )}
+                </TableBody>
+            </Table>
         </div>
     );
 };

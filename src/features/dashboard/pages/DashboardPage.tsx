@@ -10,7 +10,6 @@ import {
     Download,
     CalendarDays,
     RefreshCw,
-    Clock,
 } from 'lucide-react';
 import {
     BarChart,

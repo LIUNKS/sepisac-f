@@ -4,9 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/app/store/useAuthStore';
-import { getProjects, seedProjects } from '../services/projectService';
+import { getProjects } from '../services/projectService';
 import { ViewProjectModal } from '../components/ViewProjectModal';
 import { EditProjectModal } from '../components/EditProjectModal';
 import { ProjectExecutionModal } from '../components/ProjectExecutionModal';
@@ -26,16 +26,6 @@ export const ProjectsPage = () => {
         queryFn: () => getProjects(user?.companyId || '')
     });
 
-    const queryClient = useQueryClient();
-    const seedMutation = useMutation({
-        mutationFn: async () => {
-            if (!user?.companyId) throw new Error('No tienes empresa asignada');
-            await seedProjects(user.companyId);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['projects'] });
-        }
-    });
 
     const projects = data?.content || [];
 
@@ -85,16 +75,6 @@ export const ProjectsPage = () => {
                             ))}
                         </div>
                         <div className="flex items-center gap-2 mb-3">
-                            {projects.length === 0 && (
-                                <Button 
-                                    onClick={() => seedMutation.mutate()} 
-                                    disabled={seedMutation.isPending}
-                                    variant="outline" 
-                                    className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 h-8 text-sm"
-                                >
-                                    {seedMutation.isPending ? 'Generando...' : 'Generar Datos'}
-                                </Button>
-                            )}
                         </div>
                     </div>
                 </CardHeader>

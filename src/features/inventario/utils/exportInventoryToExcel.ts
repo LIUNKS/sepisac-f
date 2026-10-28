@@ -13,15 +13,18 @@ export const exportInventoryToExcel = async (items: InventoryItem[]) => {
 
     // Definir columnas
     worksheet.columns = [
-        { header: 'CÓDIGO (SKU)', key: 'sku', width: 20 },
-        { header: 'NOMBRE DEL ARTÍCULO', key: 'name', width: 40 },
-        { header: 'DESCRIPCIÓN / UBICACIÓN', key: 'description', width: 40 },
-        { header: 'STOCK ACTUAL', key: 'stockQuantity', width: 15 },
-        { header: 'STOCK MÍNIMO', key: 'minStockAlert', width: 15 },
-        { header: 'ESTADO', key: 'status', width: 20 },
-        { header: 'COSTO DE COMPRA', key: 'purchaseCost', width: 20 },
-        { header: 'PRECIO DE VENTA', key: 'salePrice', width: 20 },
-        { header: 'EMPRESA', key: 'companyName', width: 30 },
+        { header: 'CÓDIGO (SKU)', key: 'sku', width: 18 },
+        { header: 'NOMBRE DEL ARTÍCULO', key: 'name', width: 35 },
+        { header: 'CATEGORÍA', key: 'category', width: 25 },
+        { header: 'UBICACIÓN ALMACÉN', key: 'location', width: 28 },
+        { header: 'DESCRIPCIÓN TÉCNICA', key: 'description', width: 35 },
+        { header: 'STOCK ACTUAL', key: 'stockQuantity', width: 14 },
+        { header: 'UNIDAD', key: 'unit', width: 12 },
+        { header: 'STOCK MÍNIMO', key: 'minStockAlert', width: 14 },
+        { header: 'ESTADO', key: 'status', width: 15 },
+        { header: 'COSTO DE COMPRA', key: 'purchaseCost', width: 18 },
+        { header: 'PRECIO DE VENTA', key: 'salePrice', width: 18 },
+        { header: 'EMPRESA', key: 'companyName', width: 25 },
     ];
 
     // Estilo de la cabecera
@@ -55,10 +58,13 @@ export const exportInventoryToExcel = async (items: InventoryItem[]) => {
         const row = worksheet.addRow({
             sku: item.sku,
             name: item.name,
-            description: item.description || 'Sin ubicación',
+            category: item.category || 'General',
+            location: item.location || 'Almacén Central',
+            description: item.description || '-',
             stockQuantity: item.stockQuantity,
+            unit: item.unit || 'und',
             minStockAlert: item.minStockAlert,
-            status: item.isLowStock ? 'Bajo Stock' : 'Normal',
+            status: item.stockQuantity <= 0 ? 'Agotado' : item.isLowStock ? 'Bajo Stock' : 'Normal',
             purchaseCost: item.purchaseCost,
             salePrice: item.salePrice,
             companyName: item.companyName
@@ -73,15 +79,17 @@ export const exportInventoryToExcel = async (items: InventoryItem[]) => {
             };
             cell.alignment = { vertical: 'middle' };
 
-            // Formato de moneda para costos y precios (columnas 7 y 8)
-            if (colNumber === 7 || colNumber === 8) {
+            // Formato de moneda para costos y precios (columnas 10 y 11)
+            if (colNumber === 10 || colNumber === 11) {
                 cell.numFmt = '"S/"#,##0.00';
             }
             
-            // Formato condicional simulado para Estado (columna 6)
-            if (colNumber === 6) {
-                if (item.isLowStock) {
-                    cell.font = { color: { argb: 'FFDC2626' }, bold: true }; // Red 600
+            // Formato condicional simulado para Estado (columna 9)
+            if (colNumber === 9) {
+                if (item.stockQuantity <= 0) {
+                    cell.font = { color: { argb: 'FFB91C1C' }, bold: true }; // Red 700
+                } else if (item.isLowStock) {
+                    cell.font = { color: { argb: 'FFD97706' }, bold: true }; // Amber 600
                 } else {
                     cell.font = { color: { argb: 'FF16A34A' } }; // Green 600
                 }
@@ -93,7 +101,6 @@ export const exportInventoryToExcel = async (items: InventoryItem[]) => {
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     
-    // Formatear fecha para el nombre del archivo
     const today = new Date();
     const dateStr = `${today.getFullYear()}${(today.getMonth() + 1).toString().padStart(2, '0')}${today.getDate().toString().padStart(2, '0')}`;
     

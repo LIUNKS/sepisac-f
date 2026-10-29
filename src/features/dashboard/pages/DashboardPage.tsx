@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { getDashboardData } from '../services/dashboard.service';
 import { toast } from 'sonner';
+import { exportDashboardToExcel } from '../utils/exportDashboardToExcel';
 
 export const DashboardPage = () => {
     const { user } = useAuthStore();
@@ -59,10 +60,15 @@ export const DashboardPage = () => {
     // Calcular el total de los proyectos para el porcentaje
     const totalProjects = data.estadoProyectos.reduce((acc, curr) => acc + curr.value, 0);
 
-    const handleExport = () => {
-        toast.info("Generando reporte PDF del Dashboard...");
-        // Logica real de exportacion iria aqui
-        setTimeout(() => toast.success("Reporte descargado correctamente"), 1500);
+    const handleExport = async () => {
+        try {
+            toast.info("Generando reporte Excel del Dashboard...");
+            await exportDashboardToExcel(data, user?.fullName);
+            toast.success("Reporte descargado correctamente");
+        } catch (error) {
+            console.error("Error al exportar dashboard:", error);
+            toast.error("Error al exportar el resumen del dashboard");
+        }
     };
 
     return (
@@ -329,16 +335,21 @@ export const DashboardPage = () => {
                                         {project.startDate || '-'} / {project.endDate || '-'}
                                     </TableCell>
                                     <TableCell>
-                                        <Badge
-                                            variant="secondary"
-                                            className={
-                                                project.status === 'EN PROGRESO' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' :
-                                                    project.status === 'COMPLETADO' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
-                                                        'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20'
-                                            }
-                                        >
-                                            {project.status}
-                                        </Badge>
+                                        {(() => {
+                                            const isEnProceso = project.status === 'EN_PROCESO' || project.status === 'EN PROGRESO';
+                                            const isCompletado = project.status === 'COMPLETADO';
+                                            const isCancelado = project.status === 'CANCELADO';
+                                            const label = isEnProceso ? 'En Proceso' : isCompletado ? 'Completado' : isCancelado ? 'Cancelado' : 'Pendiente';
+                                            const badgeClass = isEnProceso ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400' :
+                                                isCompletado ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                                                isCancelado ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-400' :
+                                                'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400';
+                                            return (
+                                                <Badge variant="secondary" className={badgeClass}>
+                                                    {label}
+                                                </Badge>
+                                            );
+                                        })()}
                                     </TableCell>
                                 </TableRow>
                             ))}

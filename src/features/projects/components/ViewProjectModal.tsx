@@ -49,10 +49,11 @@ export const ViewProjectModal = ({ project, isOpen, onClose }: ViewProjectModalP
                             className={
                                 (project.status === 'EN_PROCESO' || project.status === 'EN PROGRESO') ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
                                 project.status === 'COMPLETADO' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                                project.status === 'CANCELADO' ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400' :
                                 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                             }
                         >
-                            {project.status}
+                            {(project.status === 'EN_PROCESO' || project.status === 'EN PROGRESO') ? 'En Proceso' : project.status === 'COMPLETADO' ? 'Completado' : project.status === 'CANCELADO' ? 'Cancelado' : 'Pendiente'}
                         </Badge>
                     </div>
                 </DialogHeader>

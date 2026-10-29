@@ -73,3 +73,12 @@ export const getInventoryConsumptions = async (id: string): Promise<any[]> => {
     const response = await apiClient.get(`/projects/${id}/inventory-consumptions`);
     return response.data;
 };
+
+
+export const removeEmployeeAssignment = async (projectId: string, assignmentId: string): Promise<void> => {
+    await apiClient.delete(`/projects/${projectId}/assignments/${assignmentId}`);
+};
+
+export const releaseMachineryAssignment = async (projectId: string, assignmentId: string): Promise<void> => {
+    await apiClient.delete(`/projects/${projectId}/machinery-assignments/${assignmentId}`);
+};

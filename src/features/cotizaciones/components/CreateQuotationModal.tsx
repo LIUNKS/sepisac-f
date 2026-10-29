@@ -33,6 +33,7 @@ import { useAuthStore } from '@/app/store/useAuthStore';
 import { createQuotation } from '../services/quotation.service';
 import { getInventory } from '@/features/inventario/services/inventory.service';
 import { useEmployees } from '@/features/empleados/api/empleados';
+import { useCompanies } from '@/features/empresas/api';
 
 const detailSchema = z.object({
     itemDescription: z.string().min(1, 'La descripción es obligatoria').max(255),
@@ -78,6 +79,8 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
     });
 
     const { data: employeesData } = useEmployees(user?.companyId, { page: 0, size: 100 });
+    const { data: companiesPage } = useCompanies({ page: 0, size: 100 }, isSuperAdmin);
+    const companies = companiesPage?.content || [];
 
     const inventoryItems = inventoryData?.content || [];
     const employeesList = employeesData?.content || [];
@@ -189,10 +192,25 @@ export const CreateQuotationModal = ({ isOpen, onClose }: CreateQuotationModalPr
                                     name="companyId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>ID de Empresa (Superadmin)</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} value={field.value ?? ''} placeholder="UUID de la empresa" />
-                                            </FormControl>
+                                            <FormLabel>Empresa (Superadmin)</FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value || undefined}
+                                                value={field.value || undefined}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Seleccione una empresa..." />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {companies.map((c) => (
+                                                        <SelectItem key={c.id} value={c.id}>
+                                                            {c.businessName} {c.ruc ? `(${c.ruc})` : ''}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                             <FormMessage />
                                         </FormItem>
                                     )}

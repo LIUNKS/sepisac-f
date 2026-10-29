@@ -36,9 +36,10 @@ export const CreateProjectModal = ({
     const queryClient = useQueryClient();
     const [selectedQuotationId, setSelectedQuotationId] = useState<string>('');
 
+    const safeCompanyId = companyId && companyId !== 'all' ? companyId : undefined;
     const { data: quotationsData, isLoading: isLoadingQuotations } = useQuery({
-        queryKey: ['quotations', companyId],
-        queryFn: () => getQuotations(companyId || '', 0, 100),
+        queryKey: ['quotations', safeCompanyId],
+        queryFn: () => getQuotations(safeCompanyId || '', 0, 100),
         enabled: isOpen,
     });
 
@@ -47,7 +48,7 @@ export const CreateProjectModal = ({
 
     // Quotations that are approved and don't yet have an associated project
     const availableQuotations = quotations.filter(
-        q => q.status === 'APROBADA' && !usedQuotationIds.has(q.id)
+        q => q.status?.toUpperCase() === 'APROBADA' && !usedQuotationIds.has(q.id)
     );
 
     const createMutation = useMutation({

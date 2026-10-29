@@ -157,6 +157,7 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
                                                 <SelectItem value="PENDIENTE">Pendiente</SelectItem>
                                                 <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
                                                 <SelectItem value="COMPLETADO">Completado</SelectItem>
+                                                <SelectItem value="CANCELADO">Cancelado</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

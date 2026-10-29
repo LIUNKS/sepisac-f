@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Pencil, DownloadCloud, Archive, AlertTriangle, CircleDollarSign, MapPin, Search, Building2, Package } from 'lucide-react';
+import { Eye, Pencil, DownloadCloud, Archive, AlertTriangle, CircleDollarSign, MapPin, Search, Building2, Package, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/app/store/useAuthStore';
 import { useCompanies } from '@/features/empresas/api/empresas';
-import { getInventory } from '../services/inventory.service';
+import { getInventory, deleteInventoryItem } from '../services/inventory.service';
+import { CreateInventoryItemModal } from '../components/CreateInventoryItemModal';
+import { toast } from 'sonner';
 import { EditInventoryItemModal } from '../components/EditInventoryItemModal';
 import { ViewInventoryItemModal } from '../components/ViewInventoryItemModal';
 import type { InventoryItem } from '../types';
@@ -27,6 +29,8 @@ export const InventarioPage = () => {
     const [itemToEdit, setItemToEdit] = useState<InventoryItem | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [itemToView, setItemToView] = useState<InventoryItem | null>(null);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const queryClient = useQueryClient();
 
     // List companies if superadmin without fixed company
     const { data: companiesData } = useCompanies(
@@ -41,6 +45,17 @@ export const InventarioPage = () => {
             setSelectedCompanyId(companiesData.content[0].id);
         }
     }, [user?.companyId, companiesData]);
+
+        const handleDeleteItem = async (id: string, name: string) => {
+        if (!window.confirm(`¿Está seguro de que desea eliminar el artículo "${name}" del inventario?`)) return;
+        try {
+            await deleteInventoryItem(id);
+            toast.success(`Artículo "${name}" eliminado exitosamente`);
+            queryClient.invalidateQueries({ queryKey: ['inventory'] });
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || 'Error al eliminar el artículo');
+        }
+    };
 
     const activeCompanyId = user?.companyId || selectedCompanyId || undefined;
 
@@ -231,6 +246,14 @@ export const InventarioPage = () => {
                                     <DownloadCloud className="w-3.5 h-3.5 mr-1.5 text-primary" />
                                     Exportar Excel
                                 </Button>
+                                <Button
+                                    size="sm"
+                                    className="h-8 text-xs font-medium bg-primary text-primary-foreground gap-1.5"
+                                    onClick={() => setIsCreateModalOpen(true)}
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    Nuevo Artículo
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -331,6 +354,15 @@ export const InventarioPage = () => {
                                                 >
                                                     <Pencil className="w-4 h-4" />
                                                 </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-muted-foreground hover:text-rose-500"
+                                                    title="Eliminar Ítem"
+                                                    onClick={() => handleDeleteItem(item.id, item.name)}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -367,6 +399,12 @@ export const InventarioPage = () => {
                     setItemToEdit(null);
                 }}
                 item={itemToEdit}
+            />
+
+            <CreateInventoryItemModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                companyId={activeCompanyId}
             />
         </div>
     );

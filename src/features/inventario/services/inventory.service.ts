@@ -88,3 +88,23 @@ export const updateInventoryItem = async (id: string, payload: UpdateInventoryIt
     const response = await apiClient.put<InventoryItem>(`inventory/items/${id}`, payload);
     return response.data;
 };
+
+export interface CreateInventoryItemPayload {
+    companyId?: string;
+    sku: string;
+    name: string;
+    description?: string;
+    stockQuantity: number;
+    purchaseCost?: number;
+    salePrice?: number;
+    minStockAlert?: number;
+}
+
+export const createInventoryItem = async (payload: CreateInventoryItemPayload): Promise<InventoryItem> => {
+    const response = await apiClient.post<InventoryItem>('inventory/items', payload);
+    return response.data;
+};
+
+export const deleteInventoryItem = async (id: string): Promise<void> => {
+    await apiClient.delete(`inventory/items/${id}`);
+};

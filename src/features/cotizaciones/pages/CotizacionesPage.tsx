@@ -3,7 +3,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Pencil, Download, FileText, CheckCircle2, Clock, DownloadCloud, Loader2, Plus } from 'lucide-react';
+import { 
+    Eye, Pencil, Download, FileText, CheckCircle2, Clock, 
+    DownloadCloud, Loader2, Plus, ChevronDown, Send, Check, X, Rocket, XCircle 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
@@ -13,6 +16,7 @@ import { getProjects } from '@/features/projects/services/projectService';
 import { ViewQuotationModal } from '../components/ViewQuotationModal';
 import { EditQuotationModal } from '../components/EditQuotationModal';
 import { CreateQuotationModal } from '../components/CreateQuotationModal';
+import { CreateProjectFromQuotationModal } from '../components/CreateProjectFromQuotationModal';
 import { exportQuotationsToExcel } from '../utils/exportToExcel';
 import { formatServiceType } from '../utils/formatServiceType';
 import { pdf } from '@react-pdf/renderer';
@@ -27,9 +31,9 @@ export const CotizacionesPage = () => {
 
     const statusMutation = useMutation({
         mutationFn: ({ id, status }: { id: string; status: string }) => updateQuotationStatus(id, status),
-        onSuccess: () => {
+        onSuccess: (_data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['quotations'] });
-            toast.success('Estado de la cotización actualizado');
+            toast.success(`Estado de la cotización actualizado a ${variables.status}`);
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || 'Error al actualizar el estado. Revisa las reglas de negocio.');
@@ -37,9 +41,11 @@ export const CotizacionesPage = () => {
     });
 
     const [selectedQuotation, setSelectedQuotation] = useState<Quotation | null>(null);
+    const [quotationForProject, setQuotationForProject] = useState<Quotation | null>(null);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const { user } = useAuthStore();
 
@@ -181,7 +187,7 @@ export const CotizacionesPage = () => {
                                 <DownloadCloud className="w-4 h-4 mr-2" />
                                 Exportar Datos
                             </Button>
-                            <Button className="h-8 text-sm" onClick={() => setIsCreateModalOpen(true)}>
+                            <Button className="h-8 text-sm font-semibold shadow-sm" onClick={() => setIsCreateModalOpen(true)}>
                                 <Plus className="w-4 h-4 mr-2" />
                                 Nueva Cotización
                             </Button>
@@ -213,7 +219,7 @@ export const CotizacionesPage = () => {
                                     const linkedProject = projects.find(p => p.quotationId === quote.id);
 
                                     return (
-                                        <TableRow key={quote.id} className="border-border/50 hover:bg-muted/50">
+                                        <TableRow key={quote.id} className="border-border/50 hover:bg-muted/50 transition-colors">
                                             <TableCell className="px-6 py-4 font-bold text-foreground">
                                                 {quote.quotationNumber}
                                             </TableCell>
@@ -246,42 +252,137 @@ export const CotizacionesPage = () => {
                                             <TableCell className="font-bold text-foreground">{quote.currency} {quote.totalAmount.toFixed(2)}</TableCell>
                                             <TableCell>
                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger className="focus:outline-none">
-                                                        <Badge 
-                                                            variant="secondary" 
-                                                            className={
-                                                                `cursor-pointer gap-1.5 ${
-                                                                    quote.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20' :
-                                                                    quote.status === 'BORRADOR' ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20' :
-                                                                    quote.status === 'ENVIADA' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20' :
-                                                                    'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20'
-                                                                }`
+                                                    <DropdownMenuTrigger asChild>
+                                                        <button
+                                                            type="button"
+                                                            disabled={quote.status === 'APROBADA' || quote.status === 'RECHAZADA'}
+                                                            className="focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-full inline-flex"
+                                                            title={
+                                                                quote.status === 'BORRADOR' ? 'Clic para enviar propuesta al cliente' :
+                                                                quote.status === 'ENVIADA' ? 'Clic para Aprobar o Rechazar' :
+                                                                'Estado definitivo'
                                                             }
                                                         >
-                                                            <span className={
-                                                                `w-1.5 h-1.5 rounded-full ${
-                                                                    quote.status === 'APROBADA' ? 'bg-emerald-600 dark:bg-emerald-400' :
-                                                                    quote.status === 'BORRADOR' ? 'bg-amber-600 dark:bg-amber-400' :
-                                                                    quote.status === 'ENVIADA' ? 'bg-blue-600 dark:bg-blue-400' :
-                                                                    'bg-red-600 dark:bg-red-400'
-                                                                }`
-                                                            }></span>
-                                                            {quote.status}
-                                                        </Badge>
+                                                            <Badge 
+                                                                variant="secondary" 
+                                                                className={
+                                                                    `gap-1.5 transition-all ${
+                                                                        (quote.status === 'BORRADOR' || quote.status === 'ENVIADA') ? 'cursor-pointer hover:ring-2 hover:ring-primary/20 hover:opacity-90' : 'cursor-default'
+                                                                    } ${
+                                                                        quote.status === 'APROBADA' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                                                                        quote.status === 'BORRADOR' ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' :
+                                                                        quote.status === 'ENVIADA' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
+                                                                        'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
+                                                                    }`
+                                                                }
+                                                            >
+                                                                <span className={
+                                                                    `w-1.5 h-1.5 rounded-full ${
+                                                                        quote.status === 'APROBADA' ? 'bg-emerald-600 dark:bg-emerald-400' :
+                                                                        quote.status === 'BORRADOR' ? 'bg-amber-600 dark:bg-amber-400' :
+                                                                        quote.status === 'ENVIADA' ? 'bg-blue-600 dark:bg-blue-400' :
+                                                                        'bg-red-600 dark:bg-red-400'
+                                                                    }`
+                                                                }></span>
+                                                                {quote.status}
+                                                                {(quote.status === 'BORRADOR' || quote.status === 'ENVIADA') && (
+                                                                    <ChevronDown className="w-3 h-3 ml-0.5 opacity-60" />
+                                                                )}
+                                                            </Badge>
+                                                        </button>
                                                     </DropdownMenuTrigger>
-                                                    <DropdownMenuContent>
-                                                        <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'ENVIADA' })}>Marcar como ENVIADA</DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'APROBADA' })}>Marcar como APROBADA</DropdownMenuItem>
-                                                        <DropdownMenuItem onClick={() => statusMutation.mutate({ id: quote.id, status: 'RECHAZADA' })}>Marcar como RECHAZADA</DropdownMenuItem>
+                                                    <DropdownMenuContent align="start" className="w-56">
+                                                        {quote.status === 'BORRADOR' && (
+                                                            <DropdownMenuItem 
+                                                                className="cursor-pointer text-blue-600 focus:text-blue-700 font-medium"
+                                                                onClick={() => statusMutation.mutate({ id: quote.id, status: 'ENVIADA' })}
+                                                            >
+                                                                <Send className="w-3.5 h-3.5 mr-2" />
+                                                                Marcar como ENVIADA al Cliente
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                        {quote.status === 'ENVIADA' && (
+                                                            <>
+                                                                <DropdownMenuItem 
+                                                                    className="cursor-pointer text-emerald-600 focus:text-emerald-700 font-medium"
+                                                                    onClick={() => statusMutation.mutate({ id: quote.id, status: 'APROBADA' })}
+                                                                >
+                                                                    <CheckCircle2 className="w-3.5 h-3.5 mr-2" />
+                                                                    Marcar como APROBADA
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem 
+                                                                    className="cursor-pointer text-red-600 focus:text-red-700 font-medium"
+                                                                    onClick={() => statusMutation.mutate({ id: quote.id, status: 'RECHAZADA' })}
+                                                                >
+                                                                    <XCircle className="w-3.5 h-3.5 mr-2" />
+                                                                    Marcar como RECHAZADA
+                                                                </DropdownMenuItem>
+                                                            </>
+                                                        )}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
                                             <TableCell className="px-6 text-right">
-                                                <div className="flex items-center justify-end gap-2">
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    {/* Quick contextual action buttons */}
+                                                    {quote.status === 'BORRADOR' && (
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="icon" 
+                                                            className="w-8 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-500/10 border-blue-200 dark:border-blue-900/50"
+                                                            title="Enviar Cotización al Cliente (Pasa a ENVIADA)"
+                                                            onClick={() => statusMutation.mutate({ id: quote.id, status: 'ENVIADA' })}
+                                                            disabled={statusMutation.isPending}
+                                                        >
+                                                            <Send className="w-3.5 h-3.5" />
+                                                        </Button>
+                                                    )}
+
+                                                    {quote.status === 'ENVIADA' && (
+                                                        <>
+                                                            <Button 
+                                                                variant="outline" 
+                                                                size="icon" 
+                                                                className="w-8 h-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-emerald-200 dark:border-emerald-900/50"
+                                                                title="Aprobar Cotización"
+                                                                onClick={() => statusMutation.mutate({ id: quote.id, status: 'APROBADA' })}
+                                                                disabled={statusMutation.isPending}
+                                                            >
+                                                                <Check className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button 
+                                                                variant="outline" 
+                                                                size="icon" 
+                                                                className="w-8 h-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10 border-red-200 dark:border-red-900/50"
+                                                                title="Rechazar Cotización"
+                                                                onClick={() => statusMutation.mutate({ id: quote.id, status: 'RECHAZADA' })}
+                                                                disabled={statusMutation.isPending}
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </Button>
+                                                        </>
+                                                    )}
+
+                                                    {quote.status === 'APROBADA' && !linkedProject && (
+                                                        <Button 
+                                                            variant="outline" 
+                                                            size="icon" 
+                                                            className="w-8 h-8 text-primary hover:text-primary hover:bg-primary/10 border-primary/30"
+                                                            title="Crear Proyecto Operativo desde esta Cotización"
+                                                            onClick={() => {
+                                                                setQuotationForProject(quote);
+                                                                setIsConvertModalOpen(true);
+                                                            }}
+                                                        >
+                                                            <Rocket className="w-3.5 h-3.5" />
+                                                        </Button>
+                                                    )}
+
                                                     <Button 
                                                         variant="outline" 
                                                         size="icon" 
                                                         className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                        title="Ver Detalle"
                                                         onClick={() => {
                                                             setSelectedQuotation(quote);
                                                             setIsViewModalOpen(true);
@@ -293,6 +394,7 @@ export const CotizacionesPage = () => {
                                                         variant="outline" 
                                                         size="icon" 
                                                         className="w-8 h-8 text-muted-foreground hover:text-foreground"
+                                                        title="Editar Cotización"
                                                         onClick={() => {
                                                             setSelectedQuotation(quote);
                                                             setIsEditModalOpen(true);
@@ -300,7 +402,14 @@ export const CotizacionesPage = () => {
                                                     >
                                                         <Pencil className="w-4 h-4" />
                                                     </Button>
-                                                    <Button variant="outline" size="icon" className="w-8 h-8 text-muted-foreground hover:text-foreground" onClick={() => handleDownloadPDF(quote.id, quote.quotationNumber)} disabled={downloadingId === quote.id}>
+                                                    <Button 
+                                                        variant="outline" 
+                                                        size="icon" 
+                                                        className="w-8 h-8 text-muted-foreground hover:text-foreground" 
+                                                        title="Descargar PDF"
+                                                        onClick={() => handleDownloadPDF(quote.id, quote.quotationNumber)} 
+                                                        disabled={downloadingId === quote.id}
+                                                    >
                                                         {downloadingId === quote.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                                                     </Button>
                                                 </div>
@@ -335,6 +444,15 @@ export const CotizacionesPage = () => {
             <CreateQuotationModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
+            />
+
+            <CreateProjectFromQuotationModal
+                quotation={quotationForProject}
+                isOpen={isConvertModalOpen}
+                onClose={() => {
+                    setIsConvertModalOpen(false);
+                    setQuotationForProject(null);
+                }}
             />
         </div>
     );

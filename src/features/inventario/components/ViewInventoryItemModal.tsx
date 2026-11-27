@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { InventoryItem } from '../types';
+import { getInventoryCategoryLabel } from '../constants/categories';
 
 interface ViewInventoryItemModalProps {
     isOpen: boolean;
@@ -56,7 +57,7 @@ export const ViewInventoryItemModal = ({ isOpen, onClose, item }: ViewInventoryI
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground font-medium">Categoría</p>
-                            <p className="text-foreground">{item.category}</p>
+                            <p className="text-foreground">{item.categoryLabel || getInventoryCategoryLabel(item.category)}</p>
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground font-medium">Ubicación</p>

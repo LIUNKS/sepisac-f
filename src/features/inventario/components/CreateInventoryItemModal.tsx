@@ -9,8 +9,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createInventoryItem } from '../services/inventory.service';
+import { INVENTORY_CATEGORIES, type InventoryCategoryCode } from '../constants/categories';
 import { toast } from 'sonner';
 
 interface CreateInventoryItemModalProps {
@@ -26,6 +34,7 @@ export const CreateInventoryItemModal = ({ isOpen, onClose, companyId }: CreateI
         sku: '',
         name: '',
         description: '',
+        category: 'CONSUMIBLES_SOLDADURA' as InventoryCategoryCode,
         stockQuantity: 0,
         purchaseCost: 0,
         salePrice: 0,
@@ -37,6 +46,7 @@ export const CreateInventoryItemModal = ({ isOpen, onClose, companyId }: CreateI
             sku: '',
             name: '',
             description: '',
+            category: 'CONSUMIBLES_SOLDADURA',
             stockQuantity: 0,
             purchaseCost: 0,
             salePrice: 0,
@@ -51,6 +61,7 @@ export const CreateInventoryItemModal = ({ isOpen, onClose, companyId }: CreateI
                 sku: formData.sku.trim(),
                 name: formData.name.trim(),
                 description: formData.description.trim() || undefined,
+                category: formData.category,
                 stockQuantity: Number(formData.stockQuantity) || 0,
                 purchaseCost: Number(formData.purchaseCost) || 0,
                 salePrice: Number(formData.salePrice) || 0,
@@ -112,6 +123,28 @@ export const CreateInventoryItemModal = ({ isOpen, onClose, companyId }: CreateI
                         />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-3">
+                        <Label htmlFor="create-category" className="text-right text-xs font-medium">
+                            Categoría *
+                        </Label>
+                        <div className="col-span-3">
+                            <Select
+                                value={formData.category}
+                                onValueChange={(val) => setFormData({ ...formData, category: val as InventoryCategoryCode })}
+                            >
+                                <SelectTrigger id="create-category" className="bg-background border-border text-foreground">
+                                    <SelectValue placeholder="Seleccione categoría" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {INVENTORY_CATEGORIES.map((cat) => (
+                                        <SelectItem key={cat.value} value={cat.value}>
+                                            {cat.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-3">
                         <Label htmlFor="create-desc" className="text-right text-xs font-medium">
                             Descripción
                         </Label>
@@ -132,7 +165,7 @@ export const CreateInventoryItemModal = ({ isOpen, onClose, companyId }: CreateI
                             type="number"
                             min="0"
                             value={formData.stockQuantity}
-                            onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, stockQuantity: parseInt(e.target.value, 10) || 0 })}
                             className="col-span-3 bg-background border-border text-foreground"
                         />
                     </div>
@@ -173,7 +206,7 @@ export const CreateInventoryItemModal = ({ isOpen, onClose, companyId }: CreateI
                             type="number"
                             min="0"
                             value={formData.minStockAlert}
-                            onChange={(e) => setFormData({ ...formData, minStockAlert: parseInt(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, minStockAlert: parseInt(e.target.value, 10) || 0 })}
                             className="col-span-3 bg-background border-border text-foreground"
                         />
                     </div>

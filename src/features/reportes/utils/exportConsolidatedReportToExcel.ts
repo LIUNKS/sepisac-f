@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import type { Project } from '@/features/projects/types';
-import type { Quotation } from '@/features/cotizaciones/types';
+import { formatServiceType, type Quotation } from '@/features/cotizaciones';
 import type { InvoiceResponseDTO } from '@/features/facturacion/types';
 import type { InventoryItem } from '@/features/inventario/types';
 import type { EmployeeResponseDTO } from '@/features/empleados/types';
@@ -121,7 +121,7 @@ export const exportConsolidatedReportToExcel = async (data: ConsolidatedReportDa
         quotesSheet.addRow({
             number: q.quotationNumber,
             client: q.clientName,
-            service: q.serviceType,
+            service: formatServiceType(q.serviceType),
             amount: q.totalAmount,
             status: q.status,
         });

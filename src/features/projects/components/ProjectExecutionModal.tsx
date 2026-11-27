@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-    Loader2, Users, Tractor, Package, Plus, Trash2, X, CheckCircle 
+    Loader2, Users, Tractor, Package, Plus, Trash2, X, CheckCircle, AlertTriangle, Play 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,11 +19,13 @@ import {
     getEmployeeAssignments, 
     getMachineryAssignments, 
     getInventoryConsumptions,
+    getProjectResourceRequirements,
     assignEmployee,
     assignMachinery,
     consumeInventory,
     removeEmployeeAssignment,
-    releaseMachineryAssignment
+    releaseMachineryAssignment,
+    updateProjectStatus
 } from '../services/projectService';
 import { getEmployees } from '@/features/empleados/api/empleados';
 import { getMachinery } from '@/features/maquinaria/api/maquinaria';
@@ -39,6 +41,7 @@ interface ProjectExecutionModalProps {
 export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecutionModalProps) => {
     const queryClient = useQueryClient();
     const [activeTab, setActiveTab] = useState<'personal' | 'maquinaria' | 'inventario'>('personal');
+    const [statusOverride, setStatusOverride] = useState<{ id: string; status: string } | null>(null);
 
     const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -66,7 +69,13 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
         reason: ''
     });
 
-    // 1. Project Assigned Data Queries
+    // 1. Project Assigned Data & Budget Requirements Queries
+    const { data: requirements } = useQuery({
+        queryKey: ['project-resource-requirements', project?.id],
+        queryFn: () => getProjectResourceRequirements(project!.id),
+        enabled: !!project && isOpen
+    });
+
     const { data: employees = [], isLoading: loadingEmp } = useQuery({
         queryKey: ['project-employees', project?.id],
         queryFn: () => getEmployeeAssignments(project?.id as string),
@@ -104,9 +113,18 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
         enabled: !!project && isOpen && showAddInventory
     });
 
-    const catalogEmployees = availableEmployeesData?.content || [];
-    const catalogMachinery = availableMachineryData?.content || [];
-    const catalogInventory = availableInventoryData?.content || [];
+    const catalogEmployees = useMemo(() => availableEmployeesData?.content || [], [availableEmployeesData]);
+    const catalogMachinery = useMemo(() => availableMachineryData?.content || [], [availableMachineryData]);
+    const catalogInventory = useMemo(() => availableInventoryData?.content || [], [availableInventoryData]);
+
+    const activeAssignedEmployeeIds = useMemo(
+        () => new Set(employees.filter((e: any) => e.isActive !== false).map((e: any) => e.employeeId)),
+        [employees]
+    );
+    const availableCatalogEmployees = useMemo(
+        () => catalogEmployees.filter((emp) => !activeAssignedEmployeeIds.has(emp.id)),
+        [catalogEmployees, activeAssignedEmployeeIds]
+    );
 
     // Mutations
     const assignEmpMutation = useMutation({
@@ -114,6 +132,7 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
             assignEmployee(project!.id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-employees', project?.id] });
+            queryClient.invalidateQueries({ queryKey: ['project-resource-requirements', project?.id] });
             toast.success('Empleado asignado al proyecto exitosamente');
             setShowAddEmployee(false);
             setEmployeeForm({ employeeId: '', assignedRole: '', assignedDate: todayStr });
@@ -127,6 +146,7 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
         mutationFn: (assignmentId: string) => removeEmployeeAssignment(project!.id, assignmentId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-employees', project?.id] });
+            queryClient.invalidateQueries({ queryKey: ['project-resource-requirements', project?.id] });
             toast.success('Empleado retirado del proyecto');
         },
         onError: (error: any) => {
@@ -139,6 +159,7 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
             assignMachinery(project!.id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-machinery', project?.id] });
+            queryClient.invalidateQueries({ queryKey: ['project-resource-requirements', project?.id] });
             queryClient.invalidateQueries({ queryKey: ['catalog-machinery'] });
             toast.success('Maquinaria asignada al proyecto exitosamente');
             setShowAddMachinery(false);
@@ -153,11 +174,25 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
         mutationFn: (assignmentId: string) => releaseMachineryAssignment(project!.id, assignmentId),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['project-machinery', project?.id] });
+            queryClient.invalidateQueries({ queryKey: ['project-resource-requirements', project?.id] });
             queryClient.invalidateQueries({ queryKey: ['catalog-machinery'] });
             toast.success('Maquinaria liberada y retornada a almacén');
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || 'Error al liberar maquinaria');
+        }
+    });
+
+    const startProjectMutation = useMutation({
+        mutationFn: () => updateProjectStatus(project!.id, 'EN_PROCESO'),
+        onSuccess: (updated) => {
+            setStatusOverride({ id: project!.id, status: updated.status || 'EN_PROCESO' });
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+            queryClient.invalidateQueries({ queryKey: ['project-resource-requirements', project?.id] });
+            toast.success('Proyecto iniciado correctamente en estado En Proceso');
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || 'No se pudo iniciar el proyecto');
         }
     });
 
@@ -180,6 +215,18 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
     if (!project) return null;
 
     const selectedInventoryItem = catalogInventory.find(i => i.id === inventoryForm.inventoryItemId);
+    const currentStatus = statusOverride?.id === project.id ? statusOverride.status : (project.status || 'PENDIENTE');
+    const isPendingProject = currentStatus.trim().toUpperCase() === 'PENDIENTE';
+
+    const activeEmployeesCount = requirements?.assignedEmployees ?? employees.filter((e: any) => e.isActive !== false).length;
+    const budgetedEmployeesCount = requirements?.budgetedEmployees;
+    const activeMachineryCount = requirements?.assignedMachinery ?? machinery.filter((m: any) => m.status !== 'DEVUELTO').length;
+    const budgetedMachineryCount = requirements?.budgetedMachinery;
+
+    const employeeLimitReached = requirements ? requirements.assignedEmployees >= requirements.budgetedEmployees : false;
+    const machineryLimitReached = requirements ? requirements.assignedMachinery >= requirements.budgetedMachinery : false;
+    const missingEmp = requirements ? Math.max(0, requirements.budgetedEmployees - requirements.assignedEmployees) : 0;
+    const missingMach = requirements ? Math.max(0, requirements.budgetedMachinery - requirements.assignedMachinery) : 0;
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -197,15 +244,78 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
                     </div>
                 </DialogHeader>
 
-                <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="mt-4 flex-1 flex flex-col overflow-hidden">
+                {requirements && (
+                    <div className="mt-3 p-3 rounded-lg border border-border bg-secondary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                            {requirements.quotationNumber && (
+                                <Badge variant="outline" className="font-mono bg-background">
+                                    Cotización {requirements.quotationNumber}
+                                </Badge>
+                            )}
+                            <Badge
+                                variant="secondary"
+                                className={
+                                    requirements.assignedEmployees >= requirements.budgetedEmployees
+                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200'
+                                        : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200'
+                                }
+                            >
+                                Personal: {requirements.assignedEmployees} / {requirements.budgetedEmployees}
+                            </Badge>
+                            <Badge
+                                variant="secondary"
+                                className={
+                                    requirements.assignedMachinery >= requirements.budgetedMachinery
+                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200'
+                                        : 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200'
+                                }
+                            >
+                                Maquinaria: {requirements.assignedMachinery} / {requirements.budgetedMachinery}
+                            </Badge>
+                        </div>
+
+                        {isPendingProject && (
+                            requirements.readyToStart ? (
+                                <Button
+                                    size="sm"
+                                    className="h-8 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
+                                    disabled={startProjectMutation.isPending}
+                                    onClick={() => startProjectMutation.mutate()}
+                                >
+                                    {startProjectMutation.isPending ? (
+                                        <>
+                                            <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Iniciando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="w-3.5 h-3.5 mr-1.5" /> Iniciar Proyecto
+                                        </>
+                                    )}
+                                </Button>
+                            ) : (
+                                <div className="flex items-center gap-1.5 text-xs text-amber-700 dark:text-amber-400 font-medium">
+                                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                                    <span>
+                                        Para iniciar faltan: {[
+                                            missingEmp > 0 ? `${missingEmp} empleado(s)` : null,
+                                            missingMach > 0 ? `${missingMach} equipo(s)` : null,
+                                        ].filter(Boolean).join(' y ')}
+                                    </span>
+                                </div>
+                            )
+                        )}
+                    </div>
+                )}
+
+                <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="mt-3 flex-1 flex flex-col overflow-hidden">
                     <TabsList className="grid w-full grid-cols-3 mb-4 shrink-0">
                         <TabsTrigger value="personal" className="flex items-center gap-2 text-xs sm:text-sm">
                             <Users className="w-4 h-4 text-blue-500" /> 
-                            Personal ({employees.length})
+                            Personal ({budgetedEmployeesCount !== undefined ? `${activeEmployeesCount}/${budgetedEmployeesCount}` : employees.length})
                         </TabsTrigger>
                         <TabsTrigger value="maquinaria" className="flex items-center gap-2 text-xs sm:text-sm">
                             <Tractor className="w-4 h-4 text-amber-500" /> 
-                            Maquinaria ({machinery.length})
+                            Maquinaria ({budgetedMachineryCount !== undefined ? `${activeMachineryCount}/${budgetedMachineryCount}` : machinery.length})
                         </TabsTrigger>
                         <TabsTrigger value="inventario" className="flex items-center gap-2 text-xs sm:text-sm">
                             <Package className="w-4 h-4 text-emerald-500" /> 
@@ -215,26 +325,49 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
 
                     {/* 1. PERSONAL TAB */}
                     <TabsContent value="personal" className="space-y-4 flex-1 overflow-y-auto pr-1">
-                        <div className="flex justify-between items-center bg-secondary/30 p-3 rounded-lg border border-border">
-                            <div>
-                                <h3 className="text-sm font-bold text-foreground">Cuadrilla Técnica Asignada</h3>
-                                <p className="text-xs text-muted-foreground">Técnicos, soldadores y operarios asignados al proyecto</p>
+                        <div className="space-y-2 bg-secondary/30 p-3 rounded-lg border border-border">
+                            <div className="flex justify-between items-center gap-3">
+                                <div>
+                                    <h3 className="text-sm font-bold text-foreground">Cuadrilla Técnica Asignada</h3>
+                                    <p className="text-xs text-muted-foreground">Técnicos, soldadores y operarios asignados según el presupuesto</p>
+                                </div>
+                                <Button 
+                                    size="sm" 
+                                    className="h-8 text-xs font-semibold shrink-0"
+                                    disabled={!showAddEmployee && employeeLimitReached}
+                                    onClick={() => setShowAddEmployee(!showAddEmployee)}
+                                >
+                                    {showAddEmployee ? (
+                                        <>
+                                            <X className="w-3.5 h-3.5 mr-1.5" /> Cerrar Formulario
+                                        </>
+                                    ) : employeeLimitReached ? (
+                                        requirements?.budgetedEmployees === 0
+                                            ? 'Sin personal presupuestado'
+                                            : `Cupo Completo (${activeEmployeesCount}/${budgetedEmployeesCount})`
+                                    ) : (
+                                        <>
+                                            <Plus className="w-3.5 h-3.5 mr-1.5" /> Asignar Empleado
+                                        </>
+                                    )}
+                                </Button>
                             </div>
-                            <Button 
-                                size="sm" 
-                                className="h-8 text-xs font-semibold"
-                                onClick={() => setShowAddEmployee(!showAddEmployee)}
-                            >
-                                {showAddEmployee ? (
-                                    <>
-                                        <X className="w-3.5 h-3.5 mr-1.5" /> Cerrar Formulario
-                                    </>
-                                ) : (
-                                    <>
-                                        <Plus className="w-3.5 h-3.5 mr-1.5" /> Asignar Empleado
-                                    </>
-                                )}
-                            </Button>
+                            {requirements && (
+                                <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
+                                    <span className="text-[11px] font-medium text-muted-foreground mr-1">Presupuesto cotizado:</span>
+                                    {requirements.laborRequirements.length > 0 ? (
+                                        requirements.laborRequirements.map((req, idx) => (
+                                            <Badge key={idx} variant="outline" className="text-[11px] bg-background">
+                                                {req.specialtyNeeded} × {req.quantityRequired}
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <span className="text-[11px] text-amber-600 dark:text-amber-400">
+                                            La cotización no incluye mano de obra presupuestada.
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Expandable Form: Assign Employee */}
@@ -248,17 +381,32 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
                                         <label className="text-xs font-semibold block mb-1">Seleccionar Empleado *</label>
                                         <Select 
                                             value={employeeForm.employeeId} 
-                                            onValueChange={(val) => setEmployeeForm(prev => ({ ...prev, employeeId: val }))}
+                                            onValueChange={(val) => {
+                                                const picked = catalogEmployees.find((emp) => emp.id === val);
+                                                setEmployeeForm(prev => ({
+                                                    ...prev,
+                                                    employeeId: val,
+                                                    assignedRole: prev.assignedRole.trim()
+                                                        ? prev.assignedRole
+                                                        : (picked?.specialty || ''),
+                                                }));
+                                            }}
                                         >
                                             <SelectTrigger className="h-8 text-xs bg-background">
                                                 <SelectValue placeholder={loadingCatalogEmp ? "Cargando..." : "Seleccione empleado"} />
                                             </SelectTrigger>
                                             <SelectContent className="max-h-56">
-                                                {catalogEmployees.map((emp) => (
-                                                    <SelectItem key={emp.id} value={emp.id} className="text-xs">
-                                                        {emp.fullName} ({emp.specialty || 'Técnico'})
-                                                    </SelectItem>
-                                                ))}
+                                                {availableCatalogEmployees.length === 0 ? (
+                                                    <div className="py-2 px-3 text-xs text-muted-foreground">
+                                                        No hay empleados disponibles sin asignar
+                                                    </div>
+                                                ) : (
+                                                    availableCatalogEmployees.map((emp) => (
+                                                        <SelectItem key={emp.id} value={emp.id} className="text-xs">
+                                                            {emp.fullName} ({emp.specialty || 'Técnico'})
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -364,26 +512,49 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
 
                     {/* 2. MAQUINARIA TAB */}
                     <TabsContent value="maquinaria" className="space-y-4 flex-1 overflow-y-auto pr-1">
-                        <div className="flex justify-between items-center bg-secondary/30 p-3 rounded-lg border border-border">
-                            <div>
-                                <h3 className="text-sm font-bold text-foreground">Maquinaria y Equipos en Obra</h3>
-                                <p className="text-xs text-muted-foreground">Tornos, generadores, camiones grúa y máquinas de soldar asignadas</p>
+                        <div className="space-y-2 bg-secondary/30 p-3 rounded-lg border border-border">
+                            <div className="flex justify-between items-center gap-3">
+                                <div>
+                                    <h3 className="text-sm font-bold text-foreground">Maquinaria y Equipos en Obra</h3>
+                                    <p className="text-xs text-muted-foreground">Tornos, generadores, camiones grúa y máquinas de soldar según presupuesto</p>
+                                </div>
+                                <Button 
+                                    size="sm" 
+                                    className="h-8 text-xs font-semibold shrink-0"
+                                    disabled={!showAddMachinery && machineryLimitReached}
+                                    onClick={() => setShowAddMachinery(!showAddMachinery)}
+                                >
+                                    {showAddMachinery ? (
+                                        <>
+                                            <X className="w-3.5 h-3.5 mr-1.5" /> Cerrar Formulario
+                                        </>
+                                    ) : machineryLimitReached ? (
+                                        requirements?.budgetedMachinery === 0
+                                            ? 'Sin equipos presupuestados'
+                                            : `Cupo Completo (${activeMachineryCount}/${budgetedMachineryCount})`
+                                    ) : (
+                                        <>
+                                            <Plus className="w-3.5 h-3.5 mr-1.5" /> Asignar Equipo
+                                        </>
+                                    )}
+                                </Button>
                             </div>
-                            <Button 
-                                size="sm" 
-                                className="h-8 text-xs font-semibold"
-                                onClick={() => setShowAddMachinery(!showAddMachinery)}
-                            >
-                                {showAddMachinery ? (
-                                    <>
-                                        <X className="w-3.5 h-3.5 mr-1.5" /> Cerrar Formulario
-                                    </>
-                                ) : (
-                                    <>
-                                        <Plus className="w-3.5 h-3.5 mr-1.5" /> Asignar Equipo
-                                    </>
-                                )}
-                            </Button>
+                            {requirements && (
+                                <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-border/50">
+                                    <span className="text-[11px] font-medium text-muted-foreground mr-1">Equipos presupuestados:</span>
+                                    {requirements.equipmentRequirements.length > 0 ? (
+                                        requirements.equipmentRequirements.map((req, idx) => (
+                                            <Badge key={idx} variant="outline" className="text-[11px] bg-background">
+                                                {req.itemDescription} ({req.quantity} unid./días)
+                                            </Badge>
+                                        ))
+                                    ) : (
+                                        <span className="text-[11px] text-amber-600 dark:text-amber-400">
+                                            La cotización no incluye maquinaria ni equipos presupuestados.
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Expandable Form: Assign Machinery */}
@@ -404,7 +575,12 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
                                             </SelectTrigger>
                                             <SelectContent className="max-h-56">
                                                 {catalogMachinery.map((mach) => (
-                                                    <SelectItem key={mach.id} value={mach.id} className="text-xs">
+                                                    <SelectItem
+                                                        key={mach.id}
+                                                        value={mach.id}
+                                                        disabled={mach.status !== 'DISPONIBLE'}
+                                                        className="text-xs"
+                                                    >
                                                         {mach.name} ({mach.code}) - {mach.status}
                                                     </SelectItem>
                                                 ))}

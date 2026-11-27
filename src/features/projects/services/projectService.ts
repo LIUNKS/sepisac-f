@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/axios';
-import type { Project, ProjectsResponse } from '../types';
+import type { Project, ProjectResourceRequirements, ProjectsResponse } from '../types';
 
 export const getProjects = async (companyId?: string, page = 0, size = 10, search = ''): Promise<ProjectsResponse> => {
     const params: Record<string, any> = { page, size, search: search || undefined };
@@ -71,6 +71,11 @@ export const getMachineryAssignments = async (id: string): Promise<any[]> => {
 
 export const getInventoryConsumptions = async (id: string): Promise<any[]> => {
     const response = await apiClient.get(`/projects/${id}/inventory-consumptions`);
+    return response.data;
+};
+
+export const getProjectResourceRequirements = async (id: string): Promise<ProjectResourceRequirements> => {
+    const response = await apiClient.get(`/projects/${id}/resource-requirements`);
     return response.data;
 };
 

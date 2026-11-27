@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -32,6 +32,7 @@ import { toast } from 'sonner';
 
 import type { Quotation } from '../types';
 import { updateQuotation } from '../services/quotation.service';
+import { SERVICE_TYPE_OPTIONS, formatServiceType } from '../utils/formatServiceType';
 
 const formSchema = z.object({
     clientName: z.string().min(1, 'El nombre del cliente es obligatorio').max(150, 'Máximo 150 caracteres'),
@@ -64,6 +65,17 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
             profitMarginPercentage: 20,
         },
     });
+
+    const serviceOptions = useMemo(() => {
+        const current = quotation?.serviceType?.trim();
+        if (current && !SERVICE_TYPE_OPTIONS.some((opt) => opt.value === current)) {
+            return [
+                ...SERVICE_TYPE_OPTIONS,
+                { value: current, label: formatServiceType(current) },
+            ];
+        }
+        return SERVICE_TYPE_OPTIONS;
+    }, [quotation?.serviceType]);
 
     useEffect(() => {
         if (quotation && isOpen) {
@@ -118,7 +130,7 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
 
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-4">
-                        
+
                         <FormField
                             control={form.control}
                             name="clientName"
@@ -138,10 +150,21 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
                             name="serviceType"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Tipo de Servicio / Referencia</FormLabel>
-                                    <FormControl>
-                                        <Input {...field} placeholder="Ej. Mantenimiento Preventivo" />
-                                    </FormControl>
+                                    <FormLabel>Tipo de Servicio</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Seleccione un tipo de servicio..." />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {serviceOptions.map((option) => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -177,11 +200,15 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
                                     <FormItem>
                                         <FormLabel>Tipo de Cambio</FormLabel>
                                         <FormControl>
-                                            <Input 
-                                                type="number" 
-                                                step="0.0001" 
-                                                {...field} 
-                                                onChange={e => field.onChange(parseFloat(e.target.value))}
+                                            <Input
+                                                type="number"
+                                                step="0.0001"
+                                                {...field}
+                                                value={Number.isFinite(field.value) ? field.value : ''}
+                                                onChange={e => {
+                                                    const parsed = parseFloat(e.target.value);
+                                                    field.onChange(Number.isNaN(parsed) ? 0 : parsed);
+                                                }}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -197,11 +224,15 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
                                 <FormItem>
                                     <FormLabel>Margen de Ganancia (%)</FormLabel>
                                     <FormControl>
-                                        <Input 
-                                            type="number" 
-                                            step="0.01" 
-                                            {...field} 
-                                            onChange={e => field.onChange(parseFloat(e.target.value))}
+                                        <Input
+                                            type="number"
+                                            step="0.01"
+                                            {...field}
+                                            value={Number.isFinite(field.value) ? field.value : ''}
+                                            onChange={e => {
+                                                const parsed = parseFloat(e.target.value);
+                                                field.onChange(Number.isNaN(parsed) ? 0 : parsed);
+                                            }}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -224,4 +255,3 @@ export const EditQuotationModal = ({ quotation, isOpen, onClose }: EditQuotation
         </Dialog>
     );
 };
-

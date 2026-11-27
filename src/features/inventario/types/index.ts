@@ -1,10 +1,14 @@
+import type { InventoryCategoryCode } from '../constants/categories';
+
 export interface InventoryItem {
     id: string;
     companyId: string;
     companyName: string;
     sku: string; // we'll map this to 'code' in the UI
     name: string;
-    description: string; // we'll use this for 'location' 
+    description: string; // we'll use this for 'location'
+    category: InventoryCategoryCode;
+    categoryLabel?: string;
     stockQuantity: number;
     purchaseCost: number;
     salePrice: number;
@@ -13,7 +17,6 @@ export interface InventoryItem {
     createdAt: string;
 
     // Frontend-only properties that we map locally
-    category?: string;
     location?: string;
     unit?: string;
 }

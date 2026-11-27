@@ -9,9 +9,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateInventoryItem } from '../services/inventory.service';
+import { INVENTORY_CATEGORIES, type InventoryCategoryCode } from '../constants/categories';
 import type { InventoryItem } from '../types';
+import { toast } from 'sonner';
 
 interface EditInventoryItemModalProps {
     isOpen: boolean;
@@ -26,9 +35,10 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
         sku: '',
         name: '',
         description: '',
+        category: 'CONSUMIBLES_SOLDADURA' as InventoryCategoryCode,
         purchaseCost: 0,
         salePrice: 0,
-        minStockAlert: 5
+        minStockAlert: 5,
     });
 
     useEffect(() => {
@@ -37,9 +47,10 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
                 sku: item.sku,
                 name: item.name,
                 description: item.description || '',
+                category: item.category || 'CONSUMIBLES_SOLDADURA',
                 purchaseCost: item.purchaseCost,
                 salePrice: item.salePrice,
-                minStockAlert: item.minStockAlert
+                minStockAlert: item.minStockAlert,
             });
         }
     }, [item, isOpen]);
@@ -50,9 +61,13 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
             await updateInventoryItem(item.id, formData);
         },
         onSuccess: () => {
+            toast.success('Artículo actualizado exitosamente');
             queryClient.invalidateQueries({ queryKey: ['inventory'] });
             onClose();
-        }
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || 'Error al actualizar el artículo');
+        },
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -62,7 +77,7 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px] bg-card text-foreground border-border">
+            <DialogContent className="sm:max-w-[460px] bg-card text-foreground border-border">
                 <DialogHeader>
                     <DialogTitle>Editar Artículo</DialogTitle>
                 </DialogHeader>
@@ -90,6 +105,28 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
                             className="col-span-3 bg-background border-border text-foreground"
                             required
                         />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="edit-category" className="text-right">
+                            Categoría
+                        </Label>
+                        <div className="col-span-3">
+                            <Select
+                                value={formData.category}
+                                onValueChange={(val) => setFormData({ ...formData, category: val as InventoryCategoryCode })}
+                            >
+                                <SelectTrigger id="edit-category" className="bg-background border-border text-foreground">
+                                    <SelectValue placeholder="Seleccione categoría" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {INVENTORY_CATEGORIES.map((cat) => (
+                                        <SelectItem key={cat.value} value={cat.value}>
+                                            {cat.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="description" className="text-right">
@@ -136,11 +173,11 @@ export const EditInventoryItemModal = ({ isOpen, onClose, item }: EditInventoryI
                             id="minStockAlert"
                             type="number"
                             value={formData.minStockAlert}
-                            onChange={(e) => setFormData({ ...formData, minStockAlert: parseInt(e.target.value) || 0 })}
+                            onChange={(e) => setFormData({ ...formData, minStockAlert: parseInt(e.target.value, 10) || 0 })}
                             className="col-span-3 bg-background border-border text-foreground"
                         />
                     </div>
-                    
+
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={onClose} className="border-border text-foreground">
                             Cancelar

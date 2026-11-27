@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { EditInventoryItemModal } from '../components/EditInventoryItemModal';
 import { ViewInventoryItemModal } from '../components/ViewInventoryItemModal';
 import type { InventoryItem } from '../types';
+import { getInventoryCategoryLabel } from '../constants/categories';
 import { exportInventoryToExcel } from '../utils/exportInventoryToExcel';
 import { PurchaseOrdersTab } from '../components/PurchaseOrdersTab';
 
@@ -68,16 +69,20 @@ export const InventarioPage = () => {
     const inventoryData = data?.content || [];
 
     const lowStockCount = inventoryData.filter(i => i.isLowStock).length;
-    const consumiblesCount = inventoryData.filter(i => i.category === 'Consumibles y Soldadura').length;
-    const repuestosCount = inventoryData.filter(i => i.category === 'Repuestos Mecánicos').length;
-    const lubricantesCount = inventoryData.filter(i => i.category === 'Lubricantes y Fluidos').length;
+    const consumiblesCount = inventoryData.filter(i => i.category === 'CONSUMIBLES_SOLDADURA').length;
+    const repuestosCount = inventoryData.filter(i => i.category === 'REPUESTOS_MECANICOS').length;
+    const lubricantesCount = inventoryData.filter(i => i.category === 'LUBRICANTES_FLUIDOS').length;
+    const herramientasCount = inventoryData.filter(i => i.category === 'HERRAMIENTAS_EQUIPOS').length;
+    const eppCount = inventoryData.filter(i => i.category === 'SEGURIDAD_EPP').length;
 
     const tabs = [
         { id: 'Todos', label: 'Todos', count: inventoryData.length },
         { id: 'Alertas', label: 'Bajo Stock / Alertas', count: lowStockCount, isAlert: true },
-        { id: 'Consumibles y Soldadura', label: 'Consumibles y Soldadura', count: consumiblesCount },
-        { id: 'Repuestos Mecánicos', label: 'Repuestos Mecánicos', count: repuestosCount },
-        { id: 'Lubricantes y Fluidos', label: 'Lubricantes y Fluidos', count: lubricantesCount },
+        { id: 'CONSUMIBLES_SOLDADURA', label: 'Consumibles y Soldadura', count: consumiblesCount },
+        { id: 'REPUESTOS_MECANICOS', label: 'Repuestos Mecánicos', count: repuestosCount },
+        { id: 'LUBRICANTES_FLUIDOS', label: 'Lubricantes y Fluidos', count: lubricantesCount },
+        { id: 'HERRAMIENTAS_EQUIPOS', label: 'Herramientas y Equipos', count: herramientasCount },
+        { id: 'SEGURIDAD_EPP', label: 'Seguridad y EPP', count: eppCount },
         { id: 'Ordenes', label: 'Órdenes de Compra' },
     ];
 
@@ -95,7 +100,8 @@ export const InventarioPage = () => {
             const query = searchTerm.toLowerCase();
             const matchesName = item.name.toLowerCase().includes(query);
             const matchesSku = item.sku.toLowerCase().includes(query);
-            const matchesCategory = (item.category || '').toLowerCase().includes(query);
+            const categoryText = (item.categoryLabel || getInventoryCategoryLabel(item.category)).toLowerCase();
+            const matchesCategory = categoryText.includes(query) || (item.category || '').toLowerCase().includes(query);
             const matchesLocation = (item.location || '').toLowerCase().includes(query);
             return matchesName || matchesSku || matchesCategory || matchesLocation;
         }
@@ -293,7 +299,7 @@ export const InventarioPage = () => {
                                         </TableCell>
                                         <TableCell className="py-4">
                                             <Badge variant="outline" className="text-[11px] font-normal border-border/80">
-                                                {item.category}
+                                                {item.categoryLabel || getInventoryCategoryLabel(item.category)}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="py-4 text-sm text-foreground">

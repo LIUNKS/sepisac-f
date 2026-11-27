@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import type { InventoryItem } from '../types';
+import { getInventoryCategoryLabel } from '../constants/categories';
 
 export const exportInventoryToExcel = async (items: InventoryItem[]) => {
     const workbook = new ExcelJS.Workbook();
@@ -58,7 +59,7 @@ export const exportInventoryToExcel = async (items: InventoryItem[]) => {
         const row = worksheet.addRow({
             sku: item.sku,
             name: item.name,
-            category: item.category || 'General',
+            category: item.categoryLabel || getInventoryCategoryLabel(item.category),
             location: item.location || 'Almacén Central',
             description: item.description || '-',
             stockQuantity: item.stockQuantity,

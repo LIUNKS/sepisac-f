@@ -1,27 +1,36 @@
+export interface ServiceTypeOption {
+    value: string;
+    label: string;
+}
+
+export const SERVICE_TYPE_OPTIONS: ServiceTypeOption[] = [
+    { value: 'MANTENIMIENTO_PREVENTIVO', label: 'Mantenimiento Preventivo' },
+    { value: 'MANTENIMIENTO_CORRECTIVO', label: 'Mantenimiento Correctivo' },
+    { value: 'MANTENIMIENTO_CALDERAS', label: 'Mantenimiento de Calderas' },
+    { value: 'FABRICACION_MONTAJE', label: 'Fabricación y Montaje' },
+    { value: 'SOLDADURA_ESTRUCTURAL', label: 'Soldadura Estructural' },
+    { value: 'TORNEADO_EJES', label: 'Torneado de Ejes' },
+    { value: 'MECANIZADO_GENERAL', label: 'Mecanizado General' },
+    { value: 'OVERHAUL_REDUCTORES', label: 'Overhaul de Reductores' },
+];
+
+const KNOWN_SERVICES: Record<string, string> = {
+    ...Object.fromEntries(SERVICE_TYPE_OPTIONS.map((option) => [option.value, option.label])),
+    MANTENIMIENTO: 'Mantenimiento General',
+};
+
 export const formatServiceType = (service?: string | null): string => {
     if (!service) return '-';
-    
-    const knownServices: Record<string, string> = {
-        'TORNEADO_EJES': 'Torneado de Ejes',
-        'OVERHAUL_REDUCTORES': 'Overhaul de Reductores',
-        'FABRICACION_MONTAJE': 'Fabricación y Montaje',
-        'MANTENIMIENTO': 'Mantenimiento General',
-        'MANTENIMIENTO_CALDERAS': 'Mantenimiento de Calderas',
-        'MANTENIMIENTO_PREVENTIVO': 'Mantenimiento Preventivo',
-        'MANTENIMIENTO_CORRECTIVO': 'Mantenimiento Correctivo',
-        'SOLDADURA_ESTRUCTURAL': 'Soldadura Estructural',
-        'MECANIZADO_GENERAL': 'Mecanizado General',
-    };
 
-    if (knownServices[service]) {
-        return knownServices[service];
+    if (KNOWN_SERVICES[service]) {
+        return KNOWN_SERVICES[service];
     }
 
     if (service.includes('_') && service === service.toUpperCase()) {
         return service
             .toLowerCase()
             .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
     }
 

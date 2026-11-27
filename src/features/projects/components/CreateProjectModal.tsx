@@ -15,9 +15,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { createProjectFromQuotation } from '../services/projectService';
-import { getQuotations } from '@/features/cotizaciones/services/quotation.service';
+import { formatServiceType, getQuotations, type Quotation } from '@/features/cotizaciones';
 import type { Project } from '../types';
-import type { Quotation } from '@/features/cotizaciones/types';
 
 interface CreateProjectModalProps {
     isOpen: boolean;
@@ -160,7 +159,7 @@ export const CreateProjectModal = ({
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-muted-foreground">Servicio:</span>
-                                        <span className="text-muted-foreground truncate max-w-[200px]">{selectedQuotation.serviceType || 'Servicio General'}</span>
+                                        <span className="text-muted-foreground truncate max-w-[200px]">{formatServiceType(selectedQuotation.serviceType)}</span>
                                     </div>
                                 </div>
                             )}

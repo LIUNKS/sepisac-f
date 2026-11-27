@@ -21,3 +21,27 @@ export interface ProjectsResponse {
     totalPages: number;
     last: boolean;
 }
+
+export interface LaborRequirementSummary {
+    specialtyNeeded: string;
+    quantityRequired: number;
+    estimatedHours: number;
+}
+
+export interface EquipmentRequirementSummary {
+    itemDescription: string;
+    quantity: number;
+}
+
+export interface ProjectResourceRequirements {
+    projectId: string;
+    quotationId: string | null;
+    quotationNumber: string | null;
+    budgetedEmployees: number;
+    assignedEmployees: number;
+    budgetedMachinery: number;
+    assignedMachinery: number;
+    readyToStart: boolean;
+    laborRequirements: LaborRequirementSummary[];
+    equipmentRequirements: EquipmentRequirementSummary[];
+}

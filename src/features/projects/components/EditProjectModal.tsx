@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AlertTriangle, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import {
     Dialog,
@@ -30,7 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
-import { updateProject } from '../services/projectService';
+import { getProjectResourceRequirements, updateProject } from '../services/projectService';
 import type { Project } from '../types';
 
 const projectUpdateSchema = z.object({
@@ -78,6 +79,17 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
         }
     }, [project, isOpen, form]);
 
+    const { data: requirements } = useQuery({
+        queryKey: ['project-resource-requirements', project?.id],
+        queryFn: () => getProjectResourceRequirements(project!.id),
+        enabled: isOpen && !!project?.id,
+    });
+
+    const normalizedCurrentStatus = (project?.status || '').trim().toUpperCase();
+    const isAlreadyInProgress = normalizedCurrentStatus === 'EN_PROCESO' || normalizedCurrentStatus === 'EN PROGRESO';
+    const blockedFromStart = !isAlreadyInProgress && !!requirements && !requirements.readyToStart;
+    const selectedStatus = useWatch({ control: form.control, name: 'status' });
+
     const mutation = useMutation({
         mutationFn: async (data: ProjectUpdateValues) => {
             if (!project) throw new Error('No hay proyecto seleccionado');
@@ -92,8 +104,13 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['projects'] });
+            queryClient.invalidateQueries({ queryKey: ['project-resource-requirements'] });
+            toast.success('Proyecto actualizado exitosamente');
             onClose();
             form.reset();
+        },
+        onError: (error: any) => {
+            toast.error(error?.response?.data?.message || 'Error al actualizar el proyecto');
         },
     });
 
@@ -155,11 +172,28 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
                                             </FormControl>
                                             <SelectContent>
                                                 <SelectItem value="PENDIENTE">Pendiente</SelectItem>
-                                                <SelectItem value="EN_PROCESO">En Proceso</SelectItem>
+                                                <SelectItem value="EN_PROCESO" disabled={blockedFromStart}>
+                                                    {blockedFromStart
+                                                        ? `En Proceso (Requiere Personal ${requirements.assignedEmployees}/${requirements.budgetedEmployees}, Maq. ${requirements.assignedMachinery}/${requirements.budgetedMachinery})`
+                                                        : 'En Proceso'}
+                                                </SelectItem>
                                                 <SelectItem value="COMPLETADO">Completado</SelectItem>
                                                 <SelectItem value="CANCELADO">Cancelado</SelectItem>
                                             </SelectContent>
                                         </Select>
+                                        {blockedFromStart && (
+                                            <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-1">
+                                                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                                                <span>
+                                                    Para iniciar ejecución asigna el presupuesto completo: Personal {requirements.assignedEmployees}/{requirements.budgetedEmployees}, Maquinaria {requirements.assignedMachinery}/{requirements.budgetedMachinery}.
+                                                </span>
+                                            </p>
+                                        )}
+                                        {blockedFromStart && selectedStatus === 'EN_PROCESO' && (
+                                            <p className="text-[11px] text-destructive font-medium">
+                                                No es posible guardar el cambio a En Proceso mientras falten recursos presupuestados.
+                                            </p>
+                                        )}
                                         <FormMessage />
                                     </FormItem>
                                 )}

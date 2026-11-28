@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Calendar, ClipboardList, Info, FileText } from 'lucide-react';
+import { formatProjectTitle } from '@/features/cotizaciones';
 import type { Project } from '../types';
 
 interface ViewProjectModalProps {
@@ -37,7 +38,7 @@ export const ViewProjectModal = ({ project, isOpen, onClose }: ViewProjectModalP
                             </div>
                             <div>
                                 <DialogTitle className="text-xl font-bold text-foreground">
-                                    {project.title}
+                                    {formatProjectTitle(project.title)}
                                 </DialogTitle>
                                 <p className="text-sm text-muted-foreground mt-1 font-medium">
                                     {project.code}

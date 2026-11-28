@@ -36,3 +36,19 @@ export const formatServiceType = (service?: string | null): string => {
 
     return service;
 };
+
+export const formatProjectTitle = (title?: string | null): string => {
+    if (!title) return '';
+
+    const trimmed = title.trim();
+    const sepIndex = trimmed.indexOf(' - ');
+    if (sepIndex > 0) {
+        const prefix = trimmed.slice(0, sepIndex);
+        const rest = trimmed.slice(sepIndex + 3);
+        const isCatalogCode = Boolean(KNOWN_SERVICES[prefix]) || (prefix.includes('_') && prefix === prefix.toUpperCase());
+        return isCatalogCode ? `${formatServiceType(prefix)} - ${rest}` : title;
+    }
+
+    const isCatalogCode = Boolean(KNOWN_SERVICES[trimmed]) || (trimmed.includes('_') && trimmed === trimmed.toUpperCase());
+    return isCatalogCode ? formatServiceType(trimmed) : title;
+};

@@ -21,6 +21,7 @@ import { EditProjectModal } from '../components/EditProjectModal';
 import { CreateProjectModal } from '../components/CreateProjectModal';
 import { ProjectExecutionModal } from '../components/ProjectExecutionModal';
 import { exportProjectsToExcel } from '../utils/exportProjectsToExcel';
+import { formatProjectTitle } from '@/features/cotizaciones';
 import type { Project } from '../types';
 
 const isStatusMatching = (status: string, tabId: string): boolean => {
@@ -120,7 +121,7 @@ export const ProjectsPage = () => {
             // Search Term Filter
             if (searchTerm.trim()) {
                 const term = searchTerm.toLowerCase().trim();
-                const matchesTitle = p.title?.toLowerCase().includes(term);
+                const matchesTitle = p.title?.toLowerCase().includes(term) || formatProjectTitle(p.title).toLowerCase().includes(term);
                 const matchesClient = p.clientName?.toLowerCase().includes(term);
                 const matchesCode = p.code?.toLowerCase().includes(term);
                 const matchesDescription = p.description?.toLowerCase().includes(term);
@@ -351,7 +352,7 @@ export const ProjectsPage = () => {
                                     return (
                                         <TableRow key={project.id} className="border-border/50 hover:bg-muted/50 transition-colors">
                                             <TableCell className="px-6 py-4">
-                                                <div className="font-semibold text-foreground">{project.title}</div>
+                                                <div className="font-semibold text-foreground">{formatProjectTitle(project.title)}</div>
                                                 <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{project.description || 'Sin descripción'}</div>
                                             </TableCell>
                                             <TableCell className="text-foreground font-medium">{project.clientName}</TableCell>

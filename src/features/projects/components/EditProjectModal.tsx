@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
 import { getProjectResourceRequirements, updateProject } from '../services/projectService';
+import { formatProjectTitle } from '@/features/cotizaciones';
 import type { Project } from '../types';
 
 const projectUpdateSchema = z.object({
@@ -69,7 +70,7 @@ export const EditProjectModal = ({ project, isOpen, onClose }: EditProjectModalP
     useEffect(() => {
         if (project && isOpen) {
             form.reset({
-                title: project.title,
+                title: formatProjectTitle(project.title),
                 clientName: project.clientName,
                 description: project.description || '',
                 status: (project.status === 'EN PROGRESO' ? 'EN_PROCESO' : project.status) as any,

@@ -30,6 +30,7 @@ import {
 import { getEmployees } from '@/features/empleados/api/empleados';
 import { getMachinery } from '@/features/maquinaria/api/maquinaria';
 import { getInventory } from '@/features/inventario/services/inventory.service';
+import { formatProjectTitle } from '@/features/cotizaciones';
 import type { Project } from '../types';
 
 interface ProjectExecutionModalProps {
@@ -235,7 +236,7 @@ export const ProjectExecutionModal = ({ project, isOpen, onClose }: ProjectExecu
                     <div className="flex items-center justify-between">
                         <div>
                             <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                                Gestión de Recursos: {project.title}
+                                Gestión de Recursos: {formatProjectTitle(project.title)}
                             </DialogTitle>
                             <DialogDescription className="text-xs text-muted-foreground mt-1">
                                 Código de Proyecto: <span className="font-mono font-semibold text-foreground">{project.code}</span> • Cliente: <span className="font-semibold text-foreground">{project.clientName}</span>

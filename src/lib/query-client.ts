@@ -9,7 +9,8 @@ export const queryClient = new QueryClient({
             refetchOnWindowFocus: false,
             retry: (failureCount, error: unknown) => {
                 const axiosError = error as AxiosError;
-                if (axiosError?.response?.status === 401 || axiosError?.response?.status === 403) {
+                const status = axiosError?.response?.status;
+                if (status && [400, 401, 403, 404].includes(status)) {
                     return false;
                 }
                 return failureCount < 2;
